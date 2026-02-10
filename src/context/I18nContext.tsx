@@ -19,6 +19,15 @@ const I18nContext = createContext<I18nContextValue>({
 
 let translationsLoaded = false;
 
+const ensureTranslations = () => {
+  if (!translationsLoaded) {
+    initTranslations();
+    translationsLoaded = true;
+  }
+};
+
+ensureTranslations();
+
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Language>('en');
 
@@ -33,13 +42,6 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       }
     }
   };
-
-  useEffect(() => {
-    if (!translationsLoaded) {
-      initTranslations();
-      translationsLoaded = true;
-    }
-  }, []);
 
   useEffect(() => {
     const urlLang = typeof window !== 'undefined'
