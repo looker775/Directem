@@ -30,6 +30,14 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const urlLang = typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('lang')
+      : null;
+    if (urlLang === 'en' || urlLang === 'ar' || urlLang === 'ru') {
+      setLangState(urlLang);
+      return;
+    }
+
     const stored = typeof window !== 'undefined'
       ? window.localStorage.getItem('directem_lang')
       : null;

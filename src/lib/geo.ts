@@ -105,6 +105,9 @@ export function inferCountryCodeFromTimeZone(): string | undefined {
     'Asia/Aqtobe': 'KZ',
     'Asia/Atyrau': 'KZ',
     'Asia/Oral': 'KZ',
+    'Asia/Qostanay': 'KZ',
+    'Asia/Aktau': 'KZ',
+    'Asia/Aktobe': 'KZ',
     'Asia/Dubai': 'AE',
     'Asia/Riyadh': 'SA',
     'Asia/Qatar': 'QA',
@@ -119,7 +122,25 @@ export function inferCountryCodeFromTimeZone(): string | undefined {
     'Asia/Dushanbe': 'TJ',
     'Europe/Minsk': 'BY',
   };
-  return timezoneMap[tz];
+  const mapped = timezoneMap[tz];
+  if (mapped) return mapped;
+
+  const lowered = tz.toLowerCase();
+  if (
+    lowered.includes('almaty') ||
+    lowered.includes('qostanay') ||
+    lowered.includes('qyzylorda') ||
+    lowered.includes('aqtau') ||
+    lowered.includes('aktau') ||
+    lowered.includes('aqtobe') ||
+    lowered.includes('aktobe') ||
+    lowered.includes('atyrau') ||
+    lowered.includes('oral')
+  ) {
+    return 'KZ';
+  }
+
+  return undefined;
 }
 
 export async function detectCountryCodeFromGps(): Promise<string | undefined> {
