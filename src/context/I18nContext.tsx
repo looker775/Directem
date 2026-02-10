@@ -28,8 +28,47 @@ const ensureTranslations = () => {
 
 ensureTranslations();
 
+const resolveInitialLang = (): Language => {
+  if (typeof window === 'undefined') return 'en';
+  const params = new URLSearchParams(window.location.search);
+  const urlLang = params.get('lang');
+  if (urlLang === 'en' || urlLang === 'ar' || urlLang === 'ru') {
+    try {
+      window.localStorage.setItem('directem_lang', urlLang);
+      window.localStorage.setItem('directem_lang_manual', '1');
+    } catch {
+      // ignore storage errors
+    }
+    return urlLang;
+  }
+
+  let stored: string | null = null;
+  let manual: string | null = null;
+  try {
+    stored = window.localStorage.getItem('directem_lang');
+    manual = window.localStorage.getItem('directem_lang_manual');
+  } catch {
+    // ignore storage errors
+  }
+
+  if (manual === '1' && (stored === 'en' || stored === 'ar' || stored === 'ru')) {
+    return stored;
+  }
+
+  const storedCountry = (() => {
+    try {
+      return window.localStorage.getItem('directem_country');
+    } catch {
+      return null;
+    }
+  })();
+  const browserLang = typeof navigator !== 'undefined' ? navigator.language : undefined;
+  const fallbackCode = storedCountry ?? inferCountryCodeFromTimeZone();
+  return resolveLanguage(fallbackCode ?? undefined, browserLang);
+};
+
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Language>('en');
+  const [lang, setLangState] = useState<Language>(resolveInitialLang);
 
   const setLang = (next: Language) => {
     setLangState(next);
@@ -44,31 +83,6 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const urlLang = typeof window !== 'undefined'
-      ? new URLSearchParams(window.location.search).get('lang')
-      : null;
-    if (urlLang === 'en' || urlLang === 'ar' || urlLang === 'ru') {
-      setLangState(urlLang);
-      try {
-        window.localStorage.setItem('directem_lang', urlLang);
-        window.localStorage.setItem('directem_lang_manual', '1');
-      } catch {
-        // ignore storage errors
-      }
-      return;
-    }
-
-    const stored = typeof window !== 'undefined'
-      ? window.localStorage.getItem('directem_lang')
-      : null;
-    const manual = typeof window !== 'undefined'
-      ? window.localStorage.getItem('directem_lang_manual')
-      : null;
-    if (manual === '1' && (stored === 'en' || stored === 'ar' || stored === 'ru')) {
-      setLangState(stored);
-      return;
-    }
-
     const browserLang = typeof navigator !== 'undefined' ? navigator.language : undefined;
     detectCountryCode().then((code) => {
       const manualNow = typeof window !== 'undefined'
