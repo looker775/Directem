@@ -63,6 +63,11 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
     const browserLang = typeof navigator !== 'undefined' ? navigator.language : undefined;
     detectCountryCode().then((code) => {
+      const manualNow = typeof window !== 'undefined'
+        ? window.localStorage.getItem('directem_lang_manual')
+        : null;
+      if (manualNow === '1') return;
+
       const fallbackCode = code ?? inferCountryCodeFromTimeZone();
       const resolved = resolveLanguage(fallbackCode, browserLang);
       setLangState(resolved);
