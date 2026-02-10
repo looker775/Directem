@@ -123,7 +123,7 @@ export default function Landing() {
 
   return (
     <div className="page">
-      <section className="signal-bar fade-in">
+      <section className="signal-bar fade-in glass-panel">
         <div className="signal-track">
           <span>UAE-only employers</span>
           <span>Owner-approved admin access</span>
@@ -133,7 +133,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="hero-variant">
+      <section className="hero-variant hero-ambient">
         <div className="hero-left fade-in">
           <span className="eyebrow">
             <BadgeCheck size={14} />
@@ -167,7 +167,7 @@ export default function Landing() {
         </div>
 
         <div className="hero-right">
-          <div className="ledger-card fade-in delay-1">
+          <div className="ledger-card fade-in delay-1 float-slow glow-card">
             <div className="card-header">
               <div>
                 <p className="label">Directem ledger</p>
@@ -193,7 +193,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="side-card fade-in delay-2">
+          <div className="side-card fade-in delay-2 glass-panel">
             <h4>Approval gate</h4>
             <p>
               Admins only access the database after the owner approves them. Buyers unlock contacts
@@ -313,7 +313,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="cta-variant">
+      <section className="cta-variant glow-sweep">
         <div>
           <h2>Launch your Directem access today</h2>
           <p>Secure employer data, clear pricing, and fast approvals in one place.</p>

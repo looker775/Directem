@@ -15,6 +15,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route index element={<Landing />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/kali" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
             path="/buyer"

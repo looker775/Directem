@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Lock, Mail } from 'lucide-react';
 import { supabase, getUserProfile } from '../lib/supabase';
 
@@ -9,6 +9,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const isOwnerPortal = location.pathname === '/kali';
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -51,8 +53,13 @@ export default function Login() {
             <img src="/logo.png" alt="Directem logo" className="brand-logo" />
             <span className="brand-mark">Directem</span>
           </div>
-          <h2>Welcome back</h2>
-          <p>Sign in to access employer contacts.</p>
+          {isOwnerPortal && <span className="pill">Owner & Admin portal</span>}
+          <h2>{isOwnerPortal ? 'Owner & Admin access' : 'Welcome back'}</h2>
+          <p>
+            {isOwnerPortal
+              ? 'Private access for the Directem owner and owner-approved admins.'
+              : 'Sign in to access employer contacts.'}
+          </p>
         </div>
 
         {error && <div className="alert error">{error}</div>}
@@ -90,7 +97,15 @@ export default function Login() {
         </form>
 
         <p className="helper">
-          New to Directem? <Link to="/register">Create an account</Link>
+          {isOwnerPortal ? (
+            <>
+              Buyer access? <Link to="/login">Use the buyer sign in page</Link>
+            </>
+          ) : (
+            <>
+              New to Directem? <Link to="/register">Create an account</Link>
+            </>
+          )}
         </p>
       </div>
     </div>

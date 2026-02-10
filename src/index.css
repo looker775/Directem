@@ -13,6 +13,12 @@
   --card: #ffffff;
   --border: #d6d2cc;
   --shadow: 0 18px 40px rgba(11, 19, 32, 0.12);
+  --shadow-strong: 0 28px 60px rgba(11, 19, 32, 0.18);
+  --surface: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(11, 19, 32, 0.12);
+  --glow-1: rgba(29, 78, 216, 0.18);
+  --glow-2: rgba(16, 185, 129, 0.14);
+  --glow-3: rgba(249, 115, 22, 0.16);
   --radius-lg: 20px;
   --radius-md: 12px;
   --radius-sm: 8px;
@@ -28,7 +34,10 @@ body {
   min-height: 100vh;
   background-color: var(--bg);
   background-image:
-    linear-gradient(120deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0)),
+    radial-gradient(circle at 12% 12%, var(--glow-1), transparent 48%),
+    radial-gradient(circle at 88% 8%, var(--glow-2), transparent 44%),
+    radial-gradient(circle at 70% 90%, var(--glow-3), transparent 46%),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0)),
     repeating-linear-gradient(
       0deg,
       rgba(11, 19, 32, 0.03),
@@ -72,6 +81,41 @@ p {
 
 .app-shell {
   min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+  overflow-x: hidden;
+}
+
+.app-shell::before,
+.app-shell::after {
+  content: '';
+  position: fixed;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  filter: blur(0px);
+  opacity: 0.65;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.app-shell::before {
+  top: -120px;
+  left: -120px;
+  background: radial-gradient(circle, rgba(29, 78, 216, 0.28), transparent 65%);
+  animation: orbDrift 28s ease-in-out infinite;
+}
+
+.app-shell::after {
+  bottom: -160px;
+  right: -160px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.24), transparent 65%);
+  animation: orbDrift 32s ease-in-out infinite reverse;
+}
+
+.app-shell > * {
+  position: relative;
+  z-index: 1;
 }
 
 .app-nav {
@@ -80,6 +124,8 @@ p {
   z-index: 50;
   background: rgba(246, 243, 239, 0.95);
   border-bottom: 2px solid var(--ink);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(11, 19, 32, 0.08);
 }
 
 .container {
@@ -237,6 +283,28 @@ p {
   box-shadow: var(--shadow);
 }
 
+.glass-panel {
+  background: var(--surface);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow);
+}
+
+.hero-ambient {
+  position: relative;
+  isolation: isolate;
+}
+
+.hero-ambient::before {
+  content: '';
+  position: absolute;
+  inset: -40px;
+  border-radius: 32px;
+  background: radial-gradient(circle at 20% 0%, rgba(29, 78, 216, 0.12), transparent 55%),
+    radial-gradient(circle at 80% 20%, rgba(249, 115, 22, 0.12), transparent 55%);
+  opacity: 0.8;
+  z-index: -1;
+}
+
 .signal-track {
   display: flex;
   flex-wrap: wrap;
@@ -318,12 +386,33 @@ p {
 }
 
 .ledger-card {
-  background: #0b1320;
+  background: linear-gradient(160deg, #0b1320, #111827);
   color: #f8fafc;
   border-radius: var(--radius-lg);
   padding: 1.5rem;
   border: 2px solid #0b1320;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-strong);
+}
+
+.glow-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-card::after {
+  content: '';
+  position: absolute;
+  inset: -50% 10% auto auto;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 70%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.glow-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .ledger-body {
@@ -362,11 +451,12 @@ p {
 }
 
 .side-card {
-  background: #fff;
-  border: 2px solid var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: 1.2rem;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
 }
 
 .side-grid {
@@ -612,6 +702,35 @@ p {
   box-shadow: var(--shadow);
 }
 
+.float-slow {
+  animation: floatSlow 14s ease-in-out infinite;
+}
+
+.glow-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-sweep::after {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0)
+  );
+  animation: sweep 20s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.glow-sweep > * {
+  position: relative;
+  z-index: 1;
+}
+
 .cta-variant {
   background: var(--ink);
   color: #fff;
@@ -650,14 +769,15 @@ p {
 }
 
 .primary-button {
-  background: var(--primary);
+  background: linear-gradient(120deg, var(--primary), #2563eb);
   color: white;
   border-color: var(--primary);
   box-shadow: 4px 4px 0 var(--ink);
 }
 
 .primary-button:hover {
-  background: var(--primary-dark);
+  background: linear-gradient(120deg, var(--primary-dark), #1d4ed8);
+  transform: translateY(-1px);
 }
 
 .secondary-button {
@@ -834,11 +954,12 @@ p {
 
 .auth-card {
   width: min(420px, 90vw);
-  background: var(--card);
+  background: var(--surface);
   border-radius: var(--radius-lg);
   padding: 2rem;
-  border: 2px solid var(--ink);
-  box-shadow: var(--shadow);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-strong);
+  backdrop-filter: blur(14px);
 }
 
 .auth-header {
@@ -972,7 +1093,7 @@ p {
 }
 
 .fade-in {
-  animation: fadeIn 0.8s ease;
+  animation: fadeIn 1.2s ease;
 }
 
 .delay-1 {
@@ -994,9 +1115,59 @@ p {
   }
 }
 
+@keyframes floatSlow {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sweep {
+  0% {
+    transform: translateX(-30%) rotate(0deg);
+  }
+  50% {
+    transform: translateX(10%) rotate(4deg);
+  }
+  100% {
+    transform: translateX(30%) rotate(8deg);
+  }
+}
+
+@keyframes orbDrift {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(40px, 20px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .app-shell::before,
+  .app-shell::after,
+  .glow-sweep::after {
+    animation: none !important;
   }
 }
 
