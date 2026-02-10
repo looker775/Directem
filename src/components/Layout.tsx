@@ -2,18 +2,20 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut, Menu, User, X } from 'lucide-react';
 import { getUserProfile, signOut, type Profile } from '../lib/supabase';
-
-const publicLinks = [
-  { path: '/#pricing', label: 'Pricing' },
-  { path: '/login', label: 'Sign in' },
-  { path: '/register', label: 'Register' },
-];
+import { useI18n } from '../context/I18nContext';
 
 export default function Layout() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { t, lang, setLang } = useI18n();
+
+  const publicLinks = [
+    { path: '/#pricing', label: t('Pricing') },
+    { path: '/login', label: t('Sign in') },
+    { path: '/register', label: t('Register') },
+  ];
 
   useEffect(() => {
     let active = true;
@@ -37,20 +39,25 @@ export default function Layout() {
     if (!profile) return [];
     if (profile.role === 'owner') {
       return [
-        { path: '/owner', label: 'Owner' },
-        { path: '/admin', label: 'Admin workspace' },
+        { path: '/owner', label: t('Owner') },
+        { path: '/admin', label: t('Admin workspace') },
       ];
     }
     if (profile.role === 'admin') {
-      return [{ path: '/admin', label: 'Admin workspace' }];
+      return [{ path: '/admin', label: t('Admin workspace') }];
     }
     if (profile.role === 'buyer') {
-      return [{ path: '/buyer', label: 'Marketplace' }];
+      return [{ path: '/buyer', label: t('Marketplace') }];
     }
     return [];
   };
 
   const navLinks = profile ? roleLinks() : publicLinks;
+  const languageOptions = [
+    { code: 'en', label: 'EN' },
+    { code: 'ru', label: 'RU' },
+    { code: 'ar', label: 'AR' },
+  ] as const;
 
   return (
     <div className="app-shell">
@@ -76,17 +83,29 @@ export default function Layout() {
           )}
 
           <div className="nav-actions desktop-only">
+            <div className="lang-switch" role="group" aria-label={t('Language')}>
+              {languageOptions.map((option) => (
+                <button
+                  key={option.code}
+                  type="button"
+                  className={`lang-button ${lang === option.code ? 'active' : ''}`}
+                  onClick={() => setLang(option.code)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
             {profile && (
               <div className="profile-pill">
                 <User size={16} />
-                <span>{profile.full_name || profile.email || 'Account'}</span>
-                <span className="tag">{profile.role}</span>
+                <span>{profile.full_name || profile.email || t('Account')}</span>
+                <span className="tag">{t(profile.role === 'owner' ? 'Owner' : profile.role === 'admin' ? 'Admin' : 'Buyer')}</span>
               </div>
             )}
             {profile && (
               <button className="ghost-button" onClick={handleSignOut}>
                 <LogOut size={16} />
-                Sign out
+                {t('Sign out')}
               </button>
             )}
           </div>
@@ -115,10 +134,22 @@ export default function Layout() {
                   {link.label}
                 </Link>
               ))}
+              <div className="lang-switch mobile">
+                {languageOptions.map((option) => (
+                  <button
+                    key={option.code}
+                    type="button"
+                    className={`lang-button ${lang === option.code ? 'active' : ''}`}
+                    onClick={() => setLang(option.code)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
               {profile && (
                 <button className="ghost-button" onClick={handleSignOut}>
                   <LogOut size={16} />
-                  Sign out
+                  {t('Sign out')}
                 </button>
               )}
             </div>

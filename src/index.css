@@ -198,6 +198,38 @@ p {
   gap: 0.75rem;
 }
 
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  background: #fff;
+}
+
+.lang-switch.mobile {
+  margin-top: 0.6rem;
+  width: fit-content;
+}
+
+.lang-button {
+  border: none;
+  background: transparent;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.lang-button.active {
+  background: var(--ink);
+  color: #fff;
+}
+
 .profile-pill {
   display: flex;
   align-items: center;
@@ -1184,6 +1216,22 @@ p {
   to {
     transform: rotate(360deg);
   }
+}
+
+html[dir="rtl"] body {
+  direction: rtl;
+}
+
+html[dir="rtl"] .nav-inner,
+html[dir="rtl"] .nav-links,
+html[dir="rtl"] .nav-actions,
+html[dir="rtl"] .hero-actions,
+html[dir="rtl"] .signal-track,
+html[dir="rtl"] .ledger-row,
+html[dir="rtl"] .row-actions,
+html[dir="rtl"] .contact-actions,
+html[dir="rtl"] .brand {
+  flex-direction: row-reverse;
 }
 
 @media (prefers-reduced-motion: reduce) {
