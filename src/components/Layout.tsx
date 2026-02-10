@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut, Menu, User, X } from 'lucide-react';
 import { getUserProfile, signOut, type Profile } from '../lib/supabase';
@@ -59,6 +59,28 @@ export default function Layout() {
     { code: 'ar', label: 'AR' },
   ] as const;
 
+  const showLangDebug = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get('debugLang') === '1';
+  }, [location.search]);
+
+  const langDebug = useMemo(() => {
+    if (!showLangDebug) return null;
+    let storedLang = '-';
+    let manual = '-';
+    let country = '-';
+    try {
+      storedLang = window.localStorage.getItem('directem_lang') ?? '-';
+      manual = window.localStorage.getItem('directem_lang_manual') ?? '-';
+      country = window.localStorage.getItem('directem_country') ?? '-';
+    } catch {
+      // ignore storage errors
+    }
+    const urlLang = new URLSearchParams(location.search).get('lang') ?? '-';
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '-';
+    return { storedLang, manual, country, urlLang, tz };
+  }, [showLangDebug, location.search, lang]);
+
   const handleLangClick = (code: typeof languageOptions[number]['code']) => {
     try {
       window.localStorage.setItem('directem_lang', code);
@@ -108,6 +130,13 @@ export default function Layout() {
                 </button>
               ))}
             </div>
+            {langDebug && (
+              <div className="lang-debug">
+                <span>lang:</span> {lang} ? <span>url:</span> {langDebug.urlLang} ?{' '}
+                <span>stored:</span> {langDebug.storedLang} ? <span>manual:</span> {langDebug.manual} ?{' '}
+                <span>country:</span> {langDebug.country} ? <span>tz:</span> {langDebug.tz}
+              </div>
+            )}
             {profile && (
               <div className="profile-pill">
                 <User size={16} />
