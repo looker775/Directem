@@ -3,6 +3,7 @@ import { CheckCircle, Clock, Globe2, Loader2, MessageCircle, PhoneCall, ShieldCh
 import { supabase, getUserProfile, type Profile } from '../lib/supabase';
 import { detectCountryCode, detectCountryCodeFromGps } from '../lib/geo';
 import { formatCurrency, getExchangeRate, resolveCurrencyForCountry, roundAmount } from '../lib/currency';
+import PayPalCheckout from '../components/PayPalCheckout';
 
 interface DirectemPackage {
   id: string;
@@ -51,6 +52,7 @@ export default function BuyerDashboard() {
   const [gpsStatus, setGpsStatus] = useState<'idle' | 'loading' | 'ready' | 'denied'>('idle');
   const [submittingPackage, setSubmittingPackage] = useState<string | null>(null);
   const [paymentReference, setPaymentReference] = useState('');
+  const paypalEnabled = Boolean(import.meta.env.VITE_PAYPAL_CLIENT_ID);
 
   useEffect(() => {
     loadAll();
@@ -175,18 +177,29 @@ export default function BuyerDashboard() {
     );
   }, [purchases]);
 
-  const requestAccess = async (pkg: DirectemPackage, localAmount?: number | null) => {
+  const requestAccess = async (
+    pkg: DirectemPackage,
+    localAmount?: number | null,
+    overrideReference?: string
+  ) => {
     if (!profile) return;
     setSubmittingPackage(pkg.id);
     setMessage('');
     setError('');
+
+    const note = paymentReference.trim();
+    const combinedReference = overrideReference
+      ? note
+        ? `${overrideReference} | ${note}`
+        : overrideReference
+      : note || null;
 
     const payload = {
       buyer_id: profile.id,
       package_id: pkg.id,
       local_currency: displayCurrency,
       local_amount: localAmount ?? null,
-      payment_reference: paymentReference.trim() || null,
+      payment_reference: combinedReference,
     };
 
     const { error: insertError } = await supabase
@@ -271,6 +284,21 @@ export default function BuyerDashboard() {
                         ? 'Submitting...'
                         : 'Request access'}
                   </button>
+                  {paypalEnabled && (
+                    <PayPalCheckout
+                      amount={pkg.price_usd}
+                      currency="USD"
+                      disabled={pendingPackages.has(pkg.id) || submittingPackage === pkg.id}
+                      onApproved={(details) => {
+                        const captureId =
+                          details.capture?.purchase_units?.[0]?.payments?.captures?.[0]?.id;
+                        const reference = captureId
+                          ? `paypal_capture:${captureId}`
+                          : `paypal_order:${details.orderId}`;
+                        requestAccess(pkg, pkg.localAmount, reference);
+                      }}
+                    />
+                  )}
                 </div>
               ))}
             </div>

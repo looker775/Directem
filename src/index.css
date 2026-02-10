@@ -877,6 +877,29 @@ p {
   margin-top: 1rem;
 }
 
+.paypal-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.paypal-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.paypal-note {
+  font-size: 0.85rem;
+  color: var(--muted);
+  padding: 0.5rem 0.75rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+}
+
 .history-row {
   display: flex;
   flex-wrap: wrap;
