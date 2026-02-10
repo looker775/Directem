@@ -37,6 +37,13 @@ interface DirectemAccessRow {
   };
 }
 
+interface RequestDetails {
+  preferredJob: string;
+  salaryExpectation: string;
+  notes: string;
+  paymentReference: string;
+}
+
 export default function BuyerDashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [packages, setPackages] = useState<DirectemPackage[]>([]);
@@ -51,8 +58,9 @@ export default function BuyerDashboard() {
   const [currencyNote, setCurrencyNote] = useState('');
   const [gpsStatus, setGpsStatus] = useState<'idle' | 'loading' | 'ready' | 'denied'>('idle');
   const [submittingPackage, setSubmittingPackage] = useState<string | null>(null);
-  const [paymentReference, setPaymentReference] = useState('');
   const paypalEnabled = Boolean(import.meta.env.VITE_PAYPAL_CLIENT_ID);
+  const [requestDetails, setRequestDetails] = useState<Record<string, RequestDetails>>({});
+  const [paidPackages, setPaidPackages] = useState<Record<string, string>>({});
 
   useEffect(() => {
     loadAll();
@@ -180,26 +188,29 @@ export default function BuyerDashboard() {
   const requestAccess = async (
     pkg: DirectemPackage,
     localAmount?: number | null,
-    overrideReference?: string
+    details?: RequestDetails
   ) => {
     if (!profile) return;
     setSubmittingPackage(pkg.id);
     setMessage('');
     setError('');
 
-    const note = paymentReference.trim();
-    const combinedReference = overrideReference
-      ? note
-        ? `${overrideReference} | ${note}`
-        : overrideReference
-      : note || null;
+    const payloadDetails = details ?? {
+      preferredJob: '',
+      salaryExpectation: '',
+      notes: '',
+      paymentReference: '',
+    };
 
     const payload = {
       buyer_id: profile.id,
       package_id: pkg.id,
       local_currency: displayCurrency,
       local_amount: localAmount ?? null,
-      payment_reference: combinedReference,
+      payment_reference: payloadDetails.paymentReference.trim() || null,
+      preferred_job: payloadDetails.preferredJob.trim() || null,
+      salary_expectation: payloadDetails.salaryExpectation.trim() || null,
+      request_notes: payloadDetails.notes.trim() || null,
     };
 
     const { error: insertError } = await supabase
@@ -251,15 +262,6 @@ export default function BuyerDashboard() {
               <h2>Choose your package</h2>
               <ShieldCheck size={18} />
             </div>
-            <label className="muted">
-              Optional payment reference
-              <input
-                className="input"
-                value={paymentReference}
-                onChange={(e) => setPaymentReference(e.target.value)}
-                placeholder="Invoice, transfer ID, or notes"
-              />
-            </label>
             <div className="package-grid">
               {packageCards.map((pkg) => (
                 <div key={pkg.id} className="mini-card">
@@ -273,31 +275,149 @@ export default function BuyerDashboard() {
                       <p className="muted">≈ {formatCurrency(pkg.localAmount, displayCurrency)}</p>
                     )}
                   </div>
-                  <button
-                    className="primary-button"
-                    onClick={() => requestAccess(pkg, pkg.localAmount)}
-                    disabled={pendingPackages.has(pkg.id) || submittingPackage === pkg.id}
-                  >
-                    {pendingPackages.has(pkg.id)
-                      ? 'Pending approval'
-                      : submittingPackage === pkg.id
-                        ? 'Submitting...'
-                        : 'Request access'}
-                  </button>
-                  {paypalEnabled && (
-                    <PayPalCheckout
-                      amount={pkg.price_usd}
-                      currency="USD"
-                      disabled={pendingPackages.has(pkg.id) || submittingPackage === pkg.id}
-                      onApproved={(details) => {
-                        const captureId =
-                          details.capture?.purchase_units?.[0]?.payments?.captures?.[0]?.id;
-                        const reference = captureId
-                          ? `paypal_capture:${captureId}`
-                          : `paypal_order:${details.orderId}`;
-                        requestAccess(pkg, pkg.localAmount, reference);
-                      }}
-                    />
+                  {pendingPackages.has(pkg.id) ? (
+                    <div className="note">Pending approval. You can submit a new request once this is resolved.</div>
+                  ) : (
+                    <>
+                      {paypalEnabled ? (
+                        paidPackages[pkg.id] ? (
+                          <div className="alert success">
+                            Payment received. Reference: {paidPackages[pkg.id]}
+                          </div>
+                        ) : (
+                          <PayPalCheckout
+                            amount={pkg.price_usd}
+                            currency="USD"
+                            disabled={submittingPackage === pkg.id}
+                            onApproved={(details) => {
+                              const captureId =
+                                details.capture?.purchase_units?.[0]?.payments?.captures?.[0]?.id;
+                              const reference = captureId
+                                ? `paypal_capture:${captureId}`
+                                : `paypal_order:${details.orderId}`;
+                              setPaidPackages((prev) => ({ ...prev, [pkg.id]: reference }));
+                              setRequestDetails((prev) => ({
+                                ...prev,
+                                [pkg.id]: {
+                                  ...(prev[pkg.id] ?? {
+                                    preferredJob: '',
+                                    salaryExpectation: '',
+                                    notes: '',
+                                    paymentReference: '',
+                                  }),
+                                  paymentReference: reference,
+                                },
+                              }));
+                            }}
+                          />
+                        )
+                      ) : (
+                        <label className="muted">
+                          Payment reference (required)
+                          <input
+                            className="input"
+                            value={(requestDetails[pkg.id]?.paymentReference ?? '')}
+                            onChange={(e) =>
+                              setRequestDetails((prev) => ({
+                                ...prev,
+                                [pkg.id]: {
+                                  ...(prev[pkg.id] ?? {
+                                    preferredJob: '',
+                                    salaryExpectation: '',
+                                    notes: '',
+                                    paymentReference: '',
+                                  }),
+                                  paymentReference: e.target.value,
+                                },
+                              }))
+                            }
+                            placeholder="Bank transfer ID or receipt"
+                          />
+                        </label>
+                      )}
+
+                      <div className="stack">
+                        <label className="muted">
+                          Preferred job
+                          <input
+                            className="input"
+                            value={(requestDetails[pkg.id]?.preferredJob ?? '')}
+                            onChange={(e) =>
+                              setRequestDetails((prev) => ({
+                                ...prev,
+                                [pkg.id]: {
+                                  ...(prev[pkg.id] ?? {
+                                    preferredJob: '',
+                                    salaryExpectation: '',
+                                    notes: '',
+                                    paymentReference: '',
+                                  }),
+                                  preferredJob: e.target.value,
+                                },
+                              }))
+                            }
+                            placeholder="e.g. Sales manager"
+                          />
+                        </label>
+                        <label className="muted">
+                          Salary expectation
+                          <input
+                            className="input"
+                            value={(requestDetails[pkg.id]?.salaryExpectation ?? '')}
+                            onChange={(e) =>
+                              setRequestDetails((prev) => ({
+                                ...prev,
+                                [pkg.id]: {
+                                  ...(prev[pkg.id] ?? {
+                                    preferredJob: '',
+                                    salaryExpectation: '',
+                                    notes: '',
+                                    paymentReference: '',
+                                  }),
+                                  salaryExpectation: e.target.value,
+                                },
+                              }))
+                            }
+                            placeholder="e.g. 5000 AED / month"
+                          />
+                        </label>
+                        <label className="muted">
+                          Notes for admin
+                          <textarea
+                            className="input input-textarea"
+                            value={(requestDetails[pkg.id]?.notes ?? '')}
+                            onChange={(e) =>
+                              setRequestDetails((prev) => ({
+                                ...prev,
+                                [pkg.id]: {
+                                  ...(prev[pkg.id] ?? {
+                                    preferredJob: '',
+                                    salaryExpectation: '',
+                                    notes: '',
+                                    paymentReference: '',
+                                  }),
+                                  notes: e.target.value,
+                                },
+                              }))
+                            }
+                            placeholder="Preferred cities, industries, or extra notes"
+                          />
+                        </label>
+                      </div>
+
+                      <button
+                        className="primary-button"
+                        onClick={() => requestAccess(pkg, pkg.localAmount, requestDetails[pkg.id])}
+                        disabled={
+                          submittingPackage === pkg.id ||
+                          (paypalEnabled
+                            ? !paidPackages[pkg.id]
+                            : !(requestDetails[pkg.id]?.paymentReference ?? '').trim())
+                        }
+                      >
+                        {submittingPackage === pkg.id ? 'Submitting...' : 'Submit request'}
+                      </button>
+                    </>
                   )}
                 </div>
               ))}

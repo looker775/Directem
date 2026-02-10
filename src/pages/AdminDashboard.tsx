@@ -38,6 +38,9 @@ interface DirectemPurchase {
   status: 'pending' | 'active' | 'rejected' | 'expired';
   created_at: string;
   payment_reference?: string | null;
+  preferred_job?: string | null;
+  salary_expectation?: string | null;
+  request_notes?: string | null;
   buyer?: { full_name?: string | null; email?: string | null; phone?: string | null };
   package?: { name?: string | null; employer_count?: number | null; price_usd?: number | null };
 }
@@ -104,7 +107,7 @@ export default function AdminDashboard() {
   const loadPurchases = async () => {
     const { data } = await supabase
       .from('directem_purchases')
-      .select('*, payment_reference, buyer:profiles(full_name, email, phone), package:directem_packages(name, employer_count, price_usd)')
+      .select('*, payment_reference, preferred_job, salary_expectation, request_notes, buyer:profiles(full_name, email, phone), package:directem_packages(name, employer_count, price_usd)')
       .order('created_at', { ascending: false })
       .limit(200);
     if (data) setPurchases(data as DirectemPurchase[]);
@@ -357,6 +360,15 @@ export default function AdminDashboard() {
                     </span>
                     {purchase.payment_reference && (
                       <p className="muted">Payment ref: {purchase.payment_reference}</p>
+                    )}
+                    {purchase.preferred_job && (
+                      <p className="muted">Preferred job: {purchase.preferred_job}</p>
+                    )}
+                    {purchase.salary_expectation && (
+                      <p className="muted">Salary: {purchase.salary_expectation}</p>
+                    )}
+                    {purchase.request_notes && (
+                      <p className="muted">Notes: {purchase.request_notes}</p>
                     )}
                   </div>
                   <div className="row-actions">

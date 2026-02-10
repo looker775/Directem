@@ -58,10 +58,18 @@ CREATE TABLE IF NOT EXISTS public.directem_purchases (
   local_currency text,
   local_amount numeric,
   payment_reference text,
+  preferred_job text,
+  salary_expectation text,
+  request_notes text,
   approved_by uuid REFERENCES public.profiles(id),
   approved_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+ALTER TABLE public.directem_purchases
+  ADD COLUMN IF NOT EXISTS preferred_job text,
+  ADD COLUMN IF NOT EXISTS salary_expectation text,
+  ADD COLUMN IF NOT EXISTS request_notes text;
 
 -- CONTACT ACCESS ROWS
 CREATE TABLE IF NOT EXISTS public.directem_employer_access (
