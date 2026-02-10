@@ -57,6 +57,7 @@ export default function Layout() {
       <nav className="app-nav">
         <div className="container nav-inner">
           <Link to="/" className="brand">
+            <img src="/logo.png" alt="Directem logo" className="brand-logo" />
             <span className="brand-mark">Directem</span>
           </Link>
 

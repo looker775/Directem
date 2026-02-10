@@ -45,7 +45,10 @@ export default function Register() {
     <div className="auth-shell">
       <div className="auth-card">
         <div className="auth-header">
-          <span className="brand-mark">Directem</span>
+          <div className="brand auth-brand">
+            <img src="/logo.png" alt="Directem logo" className="brand-logo" />
+            <span className="brand-mark">Directem</span>
+          </div>
           <h2>Create your Directem account</h2>
           <p>Access verified UAE employer contacts in minutes.</p>
         </div>

@@ -13,6 +13,19 @@ interface DirectemPackage {
   is_active: boolean;
 }
 
+const metricCards = [
+  { label: 'Bundles', value: '10 / 20 / 30', icon: Users },
+  { label: 'Verification', value: 'Owner-approved admins', icon: ShieldCheck },
+  { label: 'Coverage', value: 'UAE employers only', icon: Globe2 },
+  { label: 'Updates', value: 'Fresh entries daily', icon: Sparkles },
+];
+
+const ledgerEntries = [
+  { company: 'Harborline Logistics', contact: 'Hiring Desk', city: 'Dubai' },
+  { company: 'Desert Bloom Hospitality', contact: 'HR Operations', city: 'Abu Dhabi' },
+  { company: 'Gulfline Trading Group', contact: 'Talent Desk', city: 'Sharjah' },
+];
+
 export default function Landing() {
   const [packages, setPackages] = useState<DirectemPackage[]>([]);
   const [countryCode, setCountryCode] = useState<string | undefined>();
@@ -110,78 +123,101 @@ export default function Landing() {
 
   return (
     <div className="page">
-      <section className="hero">
-        <div className="hero-copy fade-in">
+      <section className="signal-bar fade-in">
+        <div className="signal-track">
+          <span>UAE-only employers</span>
+          <span>Owner-approved admin access</span>
+          <span>WhatsApp-ready contacts</span>
+          <span>Local currency estimates</span>
+          <span>Manual approval required</span>
+        </div>
+      </section>
+
+      <section className="hero-variant">
+        <div className="hero-left fade-in">
           <span className="eyebrow">
             <BadgeCheck size={14} />
-            UAE Employer Contacts
+            Directem Verified Ledger
           </span>
-          <h1>Directem unlocks verified employer contacts with WhatsApp-ready details.</h1>
+          <h1>Turn UAE employer data into an approval-gated hiring advantage.</h1>
           <p>
-            Buy curated UAE employer lists, request access instantly, and receive approval from
-            owner-approved admins. Built for recruiters, job seekers, and staffing teams.
+            Directem is a curated, owner-controlled employer ledger. Buyers request access packages,
+            admins verify payment, and contacts unlock only after approval.
           </p>
           <div className="hero-actions">
             <Link className="primary-button" to="/register">
-              Get started
+              Request access
               <ArrowRight size={16} />
             </Link>
             <Link className="secondary-button" to="/login">
               Sign in
             </Link>
           </div>
-          <div className="hero-meta">
-            <span>Verified contacts only</span>
-            <span>Admin approvals required</span>
-            <span>USD pricing with local estimates</span>
-          </div>
-        </div>
-        <div className="hero-card fade-in delay-1">
-          <div className="card-header">
-            <div>
-              <p className="label">Directem access</p>
-              <h3>Trusted employer data</h3>
-            </div>
-            <span className="tag">Live</span>
-          </div>
-          <div className="feature-grid">
-            {[
-              {
-                icon: ShieldCheck,
-                title: 'Verified contacts',
-                body: 'Admin-reviewed WhatsApp + phone numbers.',
-              },
-              {
-                icon: Users,
-                title: 'Buyer-only access',
-                body: 'Contacts unlock after approval.',
-              },
-              {
-                icon: Globe2,
-                title: 'Local pricing view',
-                body: 'USD with live currency estimates.',
-              },
-              {
-                icon: Sparkles,
-                title: 'Always refreshed',
-                body: 'Admins update employers daily.',
-              },
-            ].map((item) => (
-              <div key={item.title} className="mini-card">
-                <item.icon size={20} />
-                <h4>{item.title}</h4>
-                <p>{item.body}</p>
+          <div className="metrics-grid">
+            {metricCards.map((metric) => (
+              <div key={metric.label} className="metric-card">
+                <metric.icon size={18} />
+                <div>
+                  <p className="label">{metric.label}</p>
+                  <p className="metric-value">{metric.value}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
+
+        <div className="hero-right">
+          <div className="ledger-card fade-in delay-1">
+            <div className="card-header">
+              <div>
+                <p className="label">Directem ledger</p>
+                <h3>Verified employer entries</h3>
+              </div>
+              <span className="tag">Protected</span>
+            </div>
+            <div className="ledger-body">
+              {ledgerEntries.map((entry) => (
+                <div key={entry.company} className="ledger-row">
+                  <div>
+                    <p className="ledger-title">{entry.company}</p>
+                    <p className="muted">
+                      {entry.contact} • {entry.city}
+                    </p>
+                  </div>
+                  <div className="ledger-tags">
+                    <span className="data-tag">WhatsApp</span>
+                    <span className="data-tag">Verified</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="side-card fade-in delay-2">
+            <h4>Approval gate</h4>
+            <p>
+              Admins only access the database after the owner approves them. Buyers unlock contacts
+              after payment verification and approval.
+            </p>
+            <div className="side-grid">
+              <div>
+                <p className="label">Access control</p>
+                <p className="metric-value">Owner & Admin</p>
+              </div>
+              <div>
+                <p className="label">Buyer unlock</p>
+                <p className="metric-value">After approval</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section id="pricing" className="pricing">
-        <div className="section-header fade-in">
+      <section id="pricing" className="pricing-variant">
+        <div className="section-header">
           <div>
             <h2>Directem packages</h2>
-            <p>Choose the employer bundle that matches your hiring goals.</p>
+            <p>Pick the employer bundle that fits your hiring target.</p>
           </div>
           <div className="pricing-actions">
             <span className="pill">Country: {countryCode || 'Unknown'}</span>
@@ -193,50 +229,94 @@ export default function Landing() {
 
         {currencyNote && <p className="note">{currencyNote}</p>}
 
-        <div className="pricing-grid">
-          {pricingCards.map((pkg) => (
-            <div key={pkg.id} className="pricing-card fade-in">
-              <div>
-                <p className="label">Package</p>
-                <h3>{pkg.name}</h3>
-                <p className="muted">
-                  {pkg.employer_count} employer contacts with WhatsApp numbers.
-                </p>
+        <div className="pricing-layout">
+          <div className="pricing-table">
+            <div className="pricing-row header">
+              <span>Package</span>
+              <span>Employers</span>
+              <span>USD</span>
+              <span>Local</span>
+              <span></span>
+            </div>
+            {pricingCards.map((pkg) => (
+              <div key={pkg.id} className="pricing-row">
+                <div className="pricing-cell">
+                  <p className="label">{pkg.name}</p>
+                </div>
+                <div className="pricing-cell">
+                  <p className="metric-value">{pkg.employer_count}</p>
+                </div>
+                <div className="pricing-cell">
+                  <p className="metric-value">{formatCurrency(pkg.price_usd, 'USD')}</p>
+                </div>
+                <div className="pricing-cell">
+                  <p className="muted">
+                    {pkg.localAmount !== null && displayCurrency !== 'USD'
+                      ? `≈ ${formatCurrency(pkg.localAmount, displayCurrency)}`
+                      : '—'}
+                  </p>
+                </div>
+                <div className="pricing-cell">
+                  <Link className="ghost-button small" to="/register">
+                    Request
+                  </Link>
+                </div>
               </div>
-              <div className="price-stack">
-                <span className="price">{formatCurrency(pkg.price_usd, 'USD')}</span>
-                {pkg.localAmount !== null && displayCurrency !== 'USD' && (
-                  <span className="muted">≈ {formatCurrency(pkg.localAmount, displayCurrency)}</span>
-                )}
-              </div>
-              <Link className="primary-button" to="/register">
-                Request access
-                <ArrowRight size={16} />
-              </Link>
+            ))}
+          </div>
+
+          <div className="pricing-side">
+            <div className="side-card">
+              <h4>What you receive</h4>
+              <p>
+                Every package unlocks curated UAE employer contacts with WhatsApp numbers, phone
+                lines, and verified company names.
+              </p>
+            </div>
+            <div className="side-card">
+              <h4>Approval workflow</h4>
+              <p>
+                Submit your package request, include a payment reference, and wait for admin
+                approval. Contacts unlock instantly after approval.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="workflow">
+        <div>
+          <h2>How access works</h2>
+          <p>Directem keeps employer data protected while giving you fast access.</p>
+        </div>
+        <div className="workflow-grid">
+          {[
+            {
+              title: 'Request your bundle',
+              body: 'Choose 10, 20, or 30 employer contacts and submit your request.',
+            },
+            {
+              title: 'Owner-approved review',
+              body: 'Admins verify payments and unlock access after approval.',
+            },
+            {
+              title: 'Start outreach',
+              body: 'Use the WhatsApp-ready contacts inside your Directem dashboard.',
+            },
+          ].map((step, index) => (
+            <div key={step.title} className="workflow-step">
+              <span className="step-index">0{index + 1}</span>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="steps">
-        <div className="step-card fade-in">
-          <h3>1. Request a package</h3>
-          <p>Pick 10, 20, or 30 employer contacts and submit your request.</p>
-        </div>
-        <div className="step-card fade-in delay-1">
-          <h3>2. Admin approval</h3>
-          <p>Owner-approved admins verify payment and unlock your access.</p>
-        </div>
-        <div className="step-card fade-in delay-2">
-          <h3>3. Start outreach</h3>
-          <p>Download your curated list with WhatsApp-ready contact details.</p>
-        </div>
-      </section>
-
-      <section className="cta fade-in">
+      <section className="cta-variant">
         <div>
-          <h2>Ready to meet your next employer?</h2>
-          <p>Directem keeps employer data protected while giving you instant outreach power.</p>
+          <h2>Launch your Directem access today</h2>
+          <p>Secure employer data, clear pricing, and fast approvals in one place.</p>
         </div>
         <Link className="primary-button" to="/register">
           Create your Directem account
