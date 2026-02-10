@@ -542,6 +542,7 @@ export function initTranslations() {
     'HR Operations': 'عمليات الموارد البشرية',
     'Talent Desk': 'قسم المواهب',
     'you@company.com': 'you@company.com',
+    'Language': 'اللغة',
   });
 
   registerTranslations('ru', {
@@ -549,6 +550,7 @@ export function initTranslations() {
     'HR Operations': 'HR операции',
     'Talent Desk': 'Отдел талантов',
     'you@company.com': 'you@company.com',
+    'Language': 'Язык',
   });
 
   registerTranslations('ar', {

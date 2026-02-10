@@ -59,6 +59,17 @@ export default function Layout() {
     { code: 'ar', label: 'AR' },
   ] as const;
 
+  const handleLangClick = (code: typeof languageOptions[number]['code']) => {
+    try {
+      window.localStorage.setItem('directem_lang', code);
+      window.localStorage.setItem('directem_lang_manual', '1');
+    } catch {
+      // ignore storage errors
+    }
+    setLang(code);
+    window.setTimeout(() => window.location.reload(), 50);
+  };
+
   return (
     <div className="app-shell">
       <nav className="app-nav">
@@ -89,7 +100,7 @@ export default function Layout() {
                   key={option.code}
                   type="button"
                   className={`lang-button ${lang === option.code ? 'active' : ''}`}
-                  onClick={() => setLang(option.code)}
+                  onClick={() => handleLangClick(option.code)}
                 >
                   {option.label}
                 </button>
@@ -140,7 +151,7 @@ export default function Layout() {
                     key={option.code}
                     type="button"
                     className={`lang-button ${lang === option.code ? 'active' : ''}`}
-                    onClick={() => setLang(option.code)}
+                    onClick={() => handleLangClick(option.code)}
                   >
                     {option.label}
                   </button>

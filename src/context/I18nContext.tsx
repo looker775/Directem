@@ -68,10 +68,24 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
         : null;
       if (manualNow === '1') return;
 
-      const fallbackCode = code ?? inferCountryCodeFromTimeZone();
+      const storedCountry = typeof window !== 'undefined'
+        ? window.localStorage.getItem('directem_country')
+        : null;
+      const fallbackCode = code ?? storedCountry ?? inferCountryCodeFromTimeZone();
       const resolved = resolveLanguage(fallbackCode, browserLang);
       setLangState(resolved);
     });
+
+    const retry = window.setTimeout(() => {
+      const manualRetry = window.localStorage.getItem('directem_lang_manual');
+      if (manualRetry === '1') return;
+      const storedCountry = window.localStorage.getItem('directem_country');
+      if (!storedCountry) return;
+      const resolved = resolveLanguage(storedCountry, browserLang);
+      setLangState(resolved);
+    }, 2500);
+
+    return () => window.clearTimeout(retry);
   }, []);
 
   useEffect(() => {

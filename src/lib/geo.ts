@@ -91,7 +91,15 @@ export async function detectLocationFromIp(): Promise<IpLocation | undefined> {
 
 export async function detectCountryCode(): Promise<string | undefined> {
   const location = await detectLocationFromIp();
-  return location?.countryCode;
+  const code = location?.countryCode;
+  if (code && typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem('directem_country', code);
+    } catch {
+      // ignore storage errors
+    }
+  }
+  return code;
 }
 
 export function inferCountryCodeFromTimeZone(): string | undefined {
