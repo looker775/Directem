@@ -299,7 +299,6 @@ export function initTranslations() {
       'تم إنشاء طلب المدير. تحقق من بريدك ثم انتظر موافقة المالك.',
     'Already have an account?': 'لديك حساب؟',
     'Sign in': 'سجّل الدخول',
-    'Already approved? Sign in as admin': 'تمت الموافقة؟ سجّل الدخول كمدير',
     'Reset your password': 'إعادة تعيين كلمة المرور',
     'We will email you a secure link to reset your password.':
       'سنرسل لك رابطًا آمنًا لإعادة تعيين كلمة المرور.',
@@ -442,7 +441,6 @@ export function initTranslations() {
     'Reject': 'رفض',
     'Add new package': 'إضافة باقة جديدة',
     'Package name': 'اسم الباقة',
-    'Employers': 'أصحاب العمل',
     'USD price': 'السعر بالدولار',
     'Active': 'نشط',
     'Add': 'إضافة',
@@ -551,5 +549,21 @@ export function initTranslations() {
     'HR Operations': 'HR операции',
     'Talent Desk': 'Отдел талантов',
     'you@company.com': 'you@company.com',
+  });
+
+  registerTranslations('ar', {
+    'Preferred position': 'المنصب المفضل',
+    'Preferred city (UAE)': 'المدينة المفضلة (الإمارات)',
+    'e.g. Dubai': 'مثال: دبي',
+    'Preferred position:': 'المنصب المفضل:',
+    'Preferred city:': 'المدينة المفضلة:',
+  });
+
+  registerTranslations('ru', {
+    'Preferred position': 'Предпочтительная должность',
+    'Preferred city (UAE)': 'Предпочтительный город (ОАЭ)',
+    'e.g. Dubai': 'например: Дубай',
+    'Preferred position:': 'Предпочтительная должность:',
+    'Preferred city:': 'Предпочтительный город:',
   });
 }
