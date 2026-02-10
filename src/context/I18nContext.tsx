@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { detectCountryCode } from '../lib/geo';
+import { detectCountryCode, inferCountryCodeFromTimeZone } from '../lib/geo';
 import { getDirection, resolveLanguage, translate, type Language } from '../lib/i18n';
 import { initTranslations } from '../lib/i18n-translations';
 
@@ -39,7 +39,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
     const browserLang = typeof navigator !== 'undefined' ? navigator.language : undefined;
     detectCountryCode().then((code) => {
-      const resolved = resolveLanguage(code, browserLang);
+      const fallbackCode = code ?? inferCountryCodeFromTimeZone();
+      const resolved = resolveLanguage(fallbackCode, browserLang);
       setLangState(resolved);
     });
   }, []);

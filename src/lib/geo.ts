@@ -94,6 +94,34 @@ export async function detectCountryCode(): Promise<string | undefined> {
   return location?.countryCode;
 }
 
+export function inferCountryCodeFromTimeZone(): string | undefined {
+  if (typeof Intl === 'undefined') return undefined;
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (!tz) return undefined;
+  const timezoneMap: Record<string, string> = {
+    'Asia/Almaty': 'KZ',
+    'Asia/Qyzylorda': 'KZ',
+    'Asia/Aqtau': 'KZ',
+    'Asia/Aqtobe': 'KZ',
+    'Asia/Atyrau': 'KZ',
+    'Asia/Oral': 'KZ',
+    'Asia/Dubai': 'AE',
+    'Asia/Riyadh': 'SA',
+    'Asia/Qatar': 'QA',
+    'Asia/Kuwait': 'KW',
+    'Asia/Bahrain': 'BH',
+    'Asia/Muscat': 'OM',
+    'Asia/Beirut': 'LB',
+    'Asia/Amman': 'JO',
+    'Africa/Cairo': 'EG',
+    'Europe/Moscow': 'RU',
+    'Asia/Bishkek': 'KG',
+    'Asia/Dushanbe': 'TJ',
+    'Europe/Minsk': 'BY',
+  };
+  return timezoneMap[tz];
+}
+
 export async function detectCountryCodeFromGps(): Promise<string | undefined> {
   if (typeof navigator === 'undefined' || !navigator.geolocation) return undefined;
 
