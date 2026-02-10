@@ -22,6 +22,18 @@ let translationsLoaded = false;
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Language>('en');
 
+  const setLang = (next: Language) => {
+    setLangState(next);
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem('directem_lang', next);
+        window.localStorage.setItem('directem_lang_manual', '1');
+      } catch {
+        // ignore storage errors
+      }
+    }
+  };
+
   useEffect(() => {
     if (!translationsLoaded) {
       initTranslations();
@@ -41,8 +53,12 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     const stored = typeof window !== 'undefined'
       ? window.localStorage.getItem('directem_lang')
       : null;
-    if (stored === 'en' || stored === 'ar' || stored === 'ru') {
+    const manual = typeof window !== 'undefined'
+      ? window.localStorage.getItem('directem_lang_manual')
+      : null;
+    if (manual === '1' && (stored === 'en' || stored === 'ar' || stored === 'ru')) {
       setLangState(stored);
+      return;
     }
 
     const browserLang = typeof navigator !== 'undefined' ? navigator.language : undefined;
@@ -69,7 +85,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       lang,
       dir: getDirection(lang),
       t: (key, params) => translate(lang, key, params),
-      setLang: setLangState,
+      setLang,
     };
   }, [lang]);
 
