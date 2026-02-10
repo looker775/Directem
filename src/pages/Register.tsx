@@ -1,7 +1,7 @@
 ﻿import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Mail, User, Lock } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { getUserProfile, supabase } from '../lib/supabase';
 
 export default function Register() {
   const [fullName, setFullName] = useState('');
@@ -11,6 +11,7 @@ export default function Register() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const location = useLocation();
+  const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const isAdminSignup =
     location.pathname.startsWith('/kali') || params.get('role') === 'admin';
@@ -22,7 +23,7 @@ export default function Register() {
     setSuccess('');
 
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
         options: {
@@ -34,14 +35,45 @@ export default function Register() {
       });
 
       if (signUpError) throw signUpError;
-      setSuccess(
-        isAdminSignup
-          ? 'Admin request created. Check your email to confirm, then wait for owner approval.'
-          : 'Account created. Check your email to confirm, then sign in.'
-      );
-      setFullName('');
-      setEmail('');
-      setPassword('');
+      if (signUpData?.session) {
+        const profile = await getUserProfile();
+        if (profile?.role === 'owner') {
+          navigate('/owner');
+          return;
+        }
+        if (profile?.role === 'admin') {
+          navigate('/admin');
+          return;
+        }
+        navigate('/buyer');
+        return;
+      }
+
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError || !signInData?.session) {
+        setSuccess(
+          isAdminSignup
+            ? 'Admin request created. Check your email to confirm, then wait for owner approval.'
+            : 'Account created. Check your email to confirm, then sign in.'
+        );
+        return;
+      }
+
+      const profile = await getUserProfile();
+      if (profile?.role === 'owner') {
+        navigate('/owner');
+        return;
+      }
+      if (profile?.role === 'admin') {
+        navigate('/admin');
+        return;
+      }
+      navigate('/buyer');
+      return;
     } catch (err: any) {
       setError(err.message || 'Unable to register.');
     } finally {

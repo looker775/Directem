@@ -91,6 +91,9 @@ export default function Login() {
               />
             </div>
           </label>
+          <Link className="pill-link" to="/forgot">
+            Forgot password?
+          </Link>
           <button className="primary-button" type="submit" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
