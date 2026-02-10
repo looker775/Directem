@@ -30,6 +30,18 @@ ensureTranslations();
 
 const resolveInitialLang = (): Language => {
   if (typeof window === 'undefined') return 'en';
+  const tzCountry = inferCountryCodeFromTimeZone();
+  try {
+    const storedCountry = window.localStorage.getItem('directem_country');
+    if (storedCountry === 'KZ' || tzCountry === 'KZ') {
+      window.localStorage.setItem('directem_lang', 'ru');
+      window.localStorage.removeItem('directem_lang_manual');
+      return 'ru';
+    }
+  } catch {
+    if (tzCountry === 'KZ') return 'ru';
+  }
+
   const params = new URLSearchParams(window.location.search);
   const urlLang = params.get('lang');
   if (urlLang === 'en' || urlLang === 'ar' || urlLang === 'ru') {
@@ -99,7 +111,33 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const browserLang = typeof navigator !== 'undefined' ? navigator.language : undefined;
+    const tzCountry = inferCountryCodeFromTimeZone();
+    try {
+      const storedCountry = window.localStorage.getItem('directem_country');
+      if (storedCountry === 'KZ' || tzCountry === 'KZ') {
+        setLangState('ru');
+        window.localStorage.setItem('directem_lang', 'ru');
+        window.localStorage.removeItem('directem_lang_manual');
+        return;
+      }
+    } catch {
+      if (tzCountry === 'KZ') {
+        setLangState('ru');
+        return;
+      }
+    }
+
     detectCountryCode().then((code) => {
+      if (code === 'KZ') {
+        try {
+          window.localStorage.setItem('directem_lang', 'ru');
+          window.localStorage.removeItem('directem_lang_manual');
+        } catch {
+          // ignore storage errors
+        }
+        setLangState('ru');
+        return;
+      }
       const manualNow = typeof window !== 'undefined'
         ? window.localStorage.getItem('directem_lang_manual')
         : null;
