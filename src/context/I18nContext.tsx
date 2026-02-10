@@ -83,6 +83,21 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const urlLang = params.get('lang');
+    if (urlLang === 'en' || urlLang === 'ar' || urlLang === 'ru') {
+      setLangState(urlLang);
+      try {
+        window.localStorage.setItem('directem_lang', urlLang);
+        window.localStorage.setItem('directem_lang_manual', '1');
+      } catch {
+        // ignore storage errors
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     const browserLang = typeof navigator !== 'undefined' ? navigator.language : undefined;
     detectCountryCode().then((code) => {
       const manualNow = typeof window !== 'undefined'
