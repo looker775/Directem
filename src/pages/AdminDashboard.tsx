@@ -11,6 +11,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useI18n } from '../context/I18nContext';
 
 interface DirectemPackage {
   id: string;
@@ -39,6 +40,7 @@ interface DirectemPurchase {
   created_at: string;
   payment_reference?: string | null;
   preferred_job?: string | null;
+  preferred_city?: string | null;
   salary_expectation?: string | null;
   request_notes?: string | null;
   buyer?: { full_name?: string | null; email?: string | null; phone?: string | null };
@@ -46,6 +48,7 @@ interface DirectemPurchase {
 }
 
 export default function AdminDashboard() {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<'purchases' | 'packages' | 'employers'>('purchases');
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
@@ -81,7 +84,7 @@ export default function AdminDashboard() {
       await Promise.all([loadPackages(), loadEmployers(), loadPurchases()]);
     } catch (err: any) {
       console.error('Failed to load Directem admin data:', err);
-      setError('Unable to load Directem admin data.');
+      setError(t('Unable to load Directem admin data.'));
     } finally {
       setLoading(false);
     }
@@ -107,7 +110,7 @@ export default function AdminDashboard() {
   const loadPurchases = async () => {
     const { data } = await supabase
       .from('directem_purchases')
-      .select('*, payment_reference, preferred_job, salary_expectation, request_notes, buyer:profiles(full_name, email, phone), package:directem_packages(name, employer_count, price_usd)')
+      .select('*, payment_reference, preferred_job, preferred_city, salary_expectation, request_notes, buyer:profiles(full_name, email, phone), package:directem_packages(name, employer_count, price_usd)')
       .order('created_at', { ascending: false })
       .limit(200);
     if (data) setPurchases(data as DirectemPurchase[]);
@@ -146,7 +149,7 @@ export default function AdminDashboard() {
         .eq('id', pkg.id);
 
       if (updateError) throw updateError;
-      setMessage('Package updated.');
+      setMessage(t('Package updated.'));
       setPackageEdits((prev) => {
         const next = { ...prev };
         delete next[pkg.id];
@@ -154,7 +157,7 @@ export default function AdminDashboard() {
       });
       loadPackages();
     } catch (err: any) {
-      setError(err.message || 'Failed to update package.');
+      setError(err.message || t('Failed to update package.'));
     } finally {
       setActionLoading(null);
     }
@@ -177,11 +180,11 @@ export default function AdminDashboard() {
         .insert(payload);
 
       if (insertError) throw insertError;
-      setMessage('New package added.');
+      setMessage(t('New package added.'));
       setNewPackage({ name: '', employer_count: '', price_usd: '' });
       loadPackages();
     } catch (err: any) {
-      setError(err.message || 'Failed to add package.');
+      setError(err.message || t('Failed to add package.'));
     } finally {
       setActionLoading(null);
     }
@@ -193,7 +196,7 @@ export default function AdminDashboard() {
     setError('');
     try {
       if (!newEmployer.company_name.trim()) {
-        setError('Company name is required.');
+        setError(t('Company name is required.'));
         setActionLoading(null);
         return;
       }
@@ -214,7 +217,7 @@ export default function AdminDashboard() {
         .insert(payload);
 
       if (insertError) throw insertError;
-      setMessage('Employer contact added.');
+      setMessage(t('Employer contact added.'));
       setNewEmployer({
         company_name: '',
         contact_name: '',
@@ -227,7 +230,7 @@ export default function AdminDashboard() {
       });
       loadEmployers();
     } catch (err: any) {
-      setError(err.message || 'Failed to add employer.');
+      setError(err.message || t('Failed to add employer.'));
     } finally {
       setActionLoading(null);
     }
@@ -242,10 +245,10 @@ export default function AdminDashboard() {
         .rpc('directem_approve_purchase', { p_purchase_id: purchaseId });
 
       if (rpcError) throw rpcError;
-      setMessage(`Purchase approved. ${data ?? 0} contacts assigned.`);
+      setMessage(t('Purchase approved. {count} contacts assigned.', { count: data ?? 0 }));
       loadPurchases();
     } catch (err: any) {
-      setError(err.message || 'Failed to approve purchase.');
+      setError(err.message || t('Failed to approve purchase.'));
     } finally {
       setActionLoading(null);
     }
@@ -262,10 +265,10 @@ export default function AdminDashboard() {
         .eq('id', purchaseId);
 
       if (updateError) throw updateError;
-      setMessage('Purchase rejected.');
+      setMessage(t('Purchase rejected.'));
       loadPurchases();
     } catch (err: any) {
-      setError(err.message || 'Failed to reject purchase.');
+      setError(err.message || t('Failed to reject purchase.'));
     } finally {
       setActionLoading(null);
     }
@@ -291,12 +294,12 @@ export default function AdminDashboard() {
     <div className="page">
       <div className="page-header">
         <div>
-          <h1>Directem Admin Workspace</h1>
-          <p>Manage packages, employer contacts, and purchase approvals.</p>
+          <h1>{t('Directem Admin Workspace')}</h1>
+          <p>{t('Manage packages, employer contacts, and purchase approvals.')}</p>
         </div>
         <button className="ghost-button" onClick={loadAll}>
           <RefreshCw size={16} />
-          Refresh
+          {t('Refresh')}
         </button>
       </div>
 
@@ -306,21 +309,21 @@ export default function AdminDashboard() {
       <div className="stats-grid">
         <div className="stat-card">
           <div>
-            <p className="muted">Packages</p>
+            <p className="muted">{t('Packages')}</p>
             <h3>{stats.packages}</h3>
           </div>
           <Package size={20} />
         </div>
         <div className="stat-card">
           <div>
-            <p className="muted">Employers</p>
+            <p className="muted">{t('Employers')}</p>
             <h3>{stats.employers}</h3>
           </div>
           <Users size={20} />
         </div>
         <div className="stat-card">
           <div>
-            <p className="muted">Pending approvals</p>
+            <p className="muted">{t('Pending approvals')}</p>
             <h3>{stats.pending}</h3>
           </div>
           <ClipboardList size={20} />
@@ -329,9 +332,9 @@ export default function AdminDashboard() {
 
       <div className="tab-row">
         {[
-          { id: 'purchases', label: 'Purchase requests', icon: ClipboardList },
-          { id: 'packages', label: 'Packages', icon: Package },
-          { id: 'employers', label: 'Employers', icon: Users },
+          { id: 'purchases', label: t('Purchase requests'), icon: ClipboardList },
+          { id: 'packages', label: t('Packages'), icon: Package },
+          { id: 'employers', label: t('Employers'), icon: Users },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -346,33 +349,46 @@ export default function AdminDashboard() {
 
       {activeTab === 'purchases' && (
         <section className="card">
-          <h2>Purchase approvals</h2>
+          <h2>{t('Purchase approvals')}</h2>
           {purchases.length === 0 ? (
-            <p className="muted">No purchases yet.</p>
+            <p className="muted">{t('No purchases yet.')}</p>
           ) : (
             <div className="stack">
               {purchases.map((purchase) => (
                 <div key={purchase.id} className="history-row">
                   <div>
-                    <p>{purchase.buyer?.full_name || purchase.buyer?.email || 'Buyer'}</p>
+                    <p>{purchase.buyer?.full_name || purchase.buyer?.email || t('Buyer')}</p>
                     <span className="muted">
-                      {purchase.package?.name || 'Package'} • {purchase.package?.employer_count || 0} employers
+                      {purchase.package?.name || t('Package')} • {purchase.package?.employer_count || 0} {t('Employers')}
                     </span>
                     {purchase.payment_reference && (
-                      <p className="muted">Payment ref: {purchase.payment_reference}</p>
+                      <p className="muted">{t('Payment ref:')} {purchase.payment_reference}</p>
                     )}
                     {purchase.preferred_job && (
-                      <p className="muted">Preferred job: {purchase.preferred_job}</p>
+                      <p className="muted">{t('Preferred position:')} {purchase.preferred_job}</p>
+                    )}
+                    {purchase.preferred_city && (
+                      <p className="muted">{t('Preferred city:')} {purchase.preferred_city}</p>
                     )}
                     {purchase.salary_expectation && (
-                      <p className="muted">Salary: {purchase.salary_expectation}</p>
+                      <p className="muted">{t('Salary:')} {purchase.salary_expectation}</p>
                     )}
                     {purchase.request_notes && (
-                      <p className="muted">Notes: {purchase.request_notes}</p>
+                      <p className="muted">{t('Notes:')} {purchase.request_notes}</p>
                     )}
                   </div>
                   <div className="row-actions">
-                    <span className={`status ${purchase.status}`}>{purchase.status}</span>
+                    <span className={`status ${purchase.status}`}>
+                      {t(
+                        purchase.status === 'active'
+                          ? 'Active'
+                          : purchase.status === 'pending'
+                            ? 'Pending'
+                            : purchase.status === 'rejected'
+                              ? 'Rejected'
+                              : 'Expired'
+                      )}
+                    </span>
                     {purchase.status === 'pending' && (
                       <div className="action-buttons">
                         <button
@@ -381,7 +397,7 @@ export default function AdminDashboard() {
                           disabled={actionLoading === purchase.id}
                         >
                           {actionLoading === purchase.id ? <Loader2 size={14} className="spin" /> : <CheckCircle size={14} />}
-                          Approve & assign
+                          {t('Approve & assign')}
                         </button>
                         <button
                           className="ghost-button danger"
@@ -389,7 +405,7 @@ export default function AdminDashboard() {
                           disabled={actionLoading === purchase.id}
                         >
                           <XCircle size={14} />
-                          Reject
+                          {t('Reject')}
                         </button>
                       </div>
                     )}
@@ -403,7 +419,7 @@ export default function AdminDashboard() {
 
       {activeTab === 'packages' && (
         <section className="card">
-          <h2>Packages</h2>
+          <h2>{t('Packages')}</h2>
           <div className="stack">
             {packages.map((pkg) => {
               const draft = packageEdits[pkg.id] || {};
@@ -430,7 +446,7 @@ export default function AdminDashboard() {
                       checked={Boolean(draft.is_active ?? pkg.is_active)}
                       onChange={(e) => updatePackageDraft(pkg.id, 'is_active', e.target.checked)}
                     />
-                    Active
+                    {t('Active')}
                   </label>
                   <button
                     className="primary-button"
@@ -438,7 +454,7 @@ export default function AdminDashboard() {
                     disabled={actionLoading === pkg.id}
                   >
                     {actionLoading === pkg.id ? <Loader2 size={14} className="spin" /> : <Save size={14} />}
-                    Save
+                    {t('Save')}
                   </button>
                 </div>
               );
@@ -446,25 +462,25 @@ export default function AdminDashboard() {
           </div>
 
           <div className="divider" />
-          <h3>Add new package</h3>
+          <h3>{t('Add new package')}</h3>
           <div className="package-row">
             <input
               className="input"
               value={newPackage.name}
               onChange={(e) => setNewPackage({ ...newPackage, name: e.target.value })}
-              placeholder="Package name"
+              placeholder={t('Package name')}
             />
             <input
               className="input"
               value={newPackage.employer_count}
               onChange={(e) => setNewPackage({ ...newPackage, employer_count: e.target.value })}
-              placeholder="Employers"
+              placeholder={t('Employers')}
             />
             <input
               className="input"
               value={newPackage.price_usd}
               onChange={(e) => setNewPackage({ ...newPackage, price_usd: e.target.value })}
-              placeholder="USD price"
+              placeholder={t('USD price')}
             />
             <button
               className="primary-button"
@@ -472,7 +488,7 @@ export default function AdminDashboard() {
               disabled={actionLoading === 'new-package'}
             >
               {actionLoading === 'new-package' ? <Loader2 size={14} className="spin" /> : <BadgeCheck size={14} />}
-              Add
+              {t('Add')}
             </button>
           </div>
         </section>
@@ -480,55 +496,55 @@ export default function AdminDashboard() {
 
       {activeTab === 'employers' && (
         <section className="card">
-          <h2>Employer contacts</h2>
+          <h2>{t('Employer contacts')}</h2>
           <div className="employer-grid">
             <input
               className="input"
               value={newEmployer.company_name}
               onChange={(e) => setNewEmployer({ ...newEmployer, company_name: e.target.value })}
-              placeholder="Company name"
+              placeholder={t('Company name')}
             />
             <input
               className="input"
               value={newEmployer.contact_name}
               onChange={(e) => setNewEmployer({ ...newEmployer, contact_name: e.target.value })}
-              placeholder="Contact name"
+              placeholder={t('Contact name')}
             />
             <input
               className="input"
               value={newEmployer.job_title}
               onChange={(e) => setNewEmployer({ ...newEmployer, job_title: e.target.value })}
-              placeholder="Job title"
+              placeholder={t('Job title')}
             />
             <input
               className="input"
               value={newEmployer.whatsapp}
               onChange={(e) => setNewEmployer({ ...newEmployer, whatsapp: e.target.value })}
-              placeholder="WhatsApp"
+              placeholder={t('WhatsApp')}
             />
             <input
               className="input"
               value={newEmployer.phone}
               onChange={(e) => setNewEmployer({ ...newEmployer, phone: e.target.value })}
-              placeholder="Phone"
+              placeholder={t('Phone')}
             />
             <input
               className="input"
               value={newEmployer.email}
               onChange={(e) => setNewEmployer({ ...newEmployer, email: e.target.value })}
-              placeholder="Email"
+              placeholder={t('Email')}
             />
             <input
               className="input"
               value={newEmployer.city}
               onChange={(e) => setNewEmployer({ ...newEmployer, city: e.target.value })}
-              placeholder="City"
+              placeholder={t('City')}
             />
             <input
               className="input"
               value={newEmployer.country}
               onChange={(e) => setNewEmployer({ ...newEmployer, country: e.target.value })}
-              placeholder="Country"
+              placeholder={t('Country')}
             />
             <button
               className="primary-button"
@@ -536,7 +552,7 @@ export default function AdminDashboard() {
               disabled={actionLoading === 'new-employer'}
             >
               {actionLoading === 'new-employer' ? <Loader2 size={14} className="spin" /> : <BadgeCheck size={14} />}
-              Add employer
+              {t('Add employer')}
             </button>
           </div>
 

@@ -4,6 +4,7 @@ import { supabase, getUserProfile, type Profile } from '../lib/supabase';
 import { detectCountryCode, detectCountryCodeFromGps } from '../lib/geo';
 import { formatCurrency, getExchangeRate, resolveCurrencyForCountry, roundAmount } from '../lib/currency';
 import PayPalCheckout from '../components/PayPalCheckout';
+import { useI18n } from '../context/I18nContext';
 
 interface DirectemPackage {
   id: string;
@@ -39,12 +40,14 @@ interface DirectemAccessRow {
 
 interface RequestDetails {
   preferredJob: string;
+  preferredCity: string;
   salaryExpectation: string;
   notes: string;
   paymentReference: string;
 }
 
 export default function BuyerDashboard() {
+  const { t } = useI18n();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [packages, setPackages] = useState<DirectemPackage[]>([]);
   const [purchases, setPurchases] = useState<DirectemPurchase[]>([]);
@@ -90,21 +93,21 @@ export default function BuyerDashboard() {
         if (!rate) {
           setDisplayCurrency('USD');
           setFxRate(null);
-          setCurrencyNote('Showing USD because exchange rates are unavailable.');
+          setCurrencyNote(t('Showing USD because exchange rates are unavailable.'));
           return;
         }
         setDisplayCurrency(resolved.currency);
         setFxRate(rate);
         setCurrencyNote(
           resolved.isFallback
-            ? `Local currency unsupported. Showing ${resolved.currency}.`
+            ? t('Local currency unsupported. Showing {currency}.', { currency: resolved.currency })
             : ''
         );
       } catch {
         if (!active) return;
         setDisplayCurrency('USD');
         setFxRate(null);
-        setCurrencyNote('Showing USD because exchange rates are unavailable.');
+        setCurrencyNote(t('Showing USD because exchange rates are unavailable.'));
       }
     };
 
@@ -112,7 +115,7 @@ export default function BuyerDashboard() {
     return () => {
       active = false;
     };
-  }, [countryCode]);
+  }, [countryCode, t]);
 
   const loadAll = async () => {
     setLoading(true);
@@ -120,7 +123,7 @@ export default function BuyerDashboard() {
     try {
       const userProfile = await getUserProfile();
       if (!userProfile) {
-        setError('Unable to load your profile.');
+        setError(t('Unable to load your profile.'));
         return;
       }
       setProfile(userProfile);
@@ -153,7 +156,7 @@ export default function BuyerDashboard() {
       }
     } catch (err: any) {
       console.error('Failed to load Directem data:', err);
-      setError('Something went wrong while loading your dashboard.');
+      setError(t('Something went wrong while loading your dashboard.'));
     } finally {
       setLoading(false);
     }
@@ -185,6 +188,26 @@ export default function BuyerDashboard() {
     );
   }, [purchases]);
 
+  const ensureRequestDetails = (pkgId: string) => {
+    return requestDetails[pkgId] ?? {
+      preferredJob: '',
+      preferredCity: '',
+      salaryExpectation: '',
+      notes: '',
+      paymentReference: '',
+    };
+  };
+
+  const updateRequestDetails = (pkgId: string, updates: Partial<RequestDetails>) => {
+    setRequestDetails((prev) => ({
+      ...prev,
+      [pkgId]: {
+        ...ensureRequestDetails(pkgId),
+        ...updates,
+      },
+    }));
+  };
+
   const requestAccess = async (
     pkg: DirectemPackage,
     localAmount?: number | null,
@@ -197,10 +220,17 @@ export default function BuyerDashboard() {
 
     const payloadDetails = details ?? {
       preferredJob: '',
+      preferredCity: '',
       salaryExpectation: '',
       notes: '',
       paymentReference: '',
     };
+
+    if (!payloadDetails.paymentReference.trim()) {
+      setError(t('Payment reference (required)'));
+      setSubmittingPackage(null);
+      return;
+    }
 
     const payload = {
       buyer_id: profile.id,
@@ -209,6 +239,7 @@ export default function BuyerDashboard() {
       local_amount: localAmount ?? null,
       payment_reference: payloadDetails.paymentReference.trim() || null,
       preferred_job: payloadDetails.preferredJob.trim() || null,
+      preferred_city: payloadDetails.preferredCity.trim() || null,
       salary_expectation: payloadDetails.salaryExpectation.trim() || null,
       request_notes: payloadDetails.notes.trim() || null,
     };
@@ -218,12 +249,12 @@ export default function BuyerDashboard() {
       .insert(payload);
 
     if (insertError) {
-      setError(insertError.message || 'Failed to request access.');
+      setError(insertError.message || t('Failed to request access.'));
       setSubmittingPackage(null);
       return;
     }
 
-    setMessage('Access request submitted. Admin approval is required before contacts unlock.');
+    setMessage(t('Access request submitted. Admin approval is required before contacts unlock.'));
     setSubmittingPackage(null);
     loadAll();
   };
@@ -240,13 +271,17 @@ export default function BuyerDashboard() {
     <div className="page">
       <div className="page-header">
         <div>
-          <h1>Directem Marketplace</h1>
-          <p>Welcome, {profile?.full_name || 'buyer'}. Unlock verified UAE employer contacts.</p>
+          <h1>{t('Directem Marketplace')}</h1>
+          <p>
+            {t('Welcome, {name}. Unlock verified UAE employer contacts.', {
+              name: profile?.full_name || t('Buyer'),
+            })}
+          </p>
         </div>
         <div className="page-actions">
-          <span className="pill">Country: {countryCode || 'Unknown'}</span>
+          <span className="pill">{t('Country')}: {countryCode || t('Unknown')}</span>
           <button className="ghost-button" onClick={handleUseGps}>
-            {gpsStatus === 'loading' ? 'Locating...' : 'Use GPS'}
+            {gpsStatus === 'loading' ? t('Locating...') : t('Use GPS')}
           </button>
         </div>
       </div>
@@ -259,7 +294,7 @@ export default function BuyerDashboard() {
         <div className="stack">
           <section className="card">
             <div className="card-header">
-              <h2>Choose your package</h2>
+              <h2>{t('Choose your package')}</h2>
               <ShieldCheck size={18} />
             </div>
             <div className="package-grid">
@@ -276,147 +311,112 @@ export default function BuyerDashboard() {
                     )}
                   </div>
                   {pendingPackages.has(pkg.id) ? (
-                    <div className="note">Pending approval. You can submit a new request once this is resolved.</div>
+                    <div className="note">{t('Pending approval. You can submit a new request once this is resolved.')}</div>
                   ) : (
                     <>
-                      {paypalEnabled ? (
-                        paidPackages[pkg.id] ? (
-                          <div className="alert success">
-                            Payment received. Reference: {paidPackages[pkg.id]}
-                          </div>
-                        ) : (
-                          <PayPalCheckout
-                            amount={pkg.price_usd}
-                            currency="USD"
-                            disabled={submittingPackage === pkg.id}
-                            onApproved={(details) => {
-                              const captureId =
-                                details.capture?.purchase_units?.[0]?.payments?.captures?.[0]?.id;
-                              const reference = captureId
-                                ? `paypal_capture:${captureId}`
-                                : `paypal_order:${details.orderId}`;
-                              setPaidPackages((prev) => ({ ...prev, [pkg.id]: reference }));
-                              setRequestDetails((prev) => ({
-                                ...prev,
-                                [pkg.id]: {
-                                  ...(prev[pkg.id] ?? {
-                                    preferredJob: '',
-                                    salaryExpectation: '',
-                                    notes: '',
-                                    paymentReference: '',
-                                  }),
-                                  paymentReference: reference,
-                                },
-                              }));
-                            }}
-                          />
-                        )
-                      ) : (
-                        <label className="muted">
-                          Payment reference (required)
-                          <input
-                            className="input"
-                            value={(requestDetails[pkg.id]?.paymentReference ?? '')}
-                            onChange={(e) =>
-                              setRequestDetails((prev) => ({
-                                ...prev,
-                                [pkg.id]: {
-                                  ...(prev[pkg.id] ?? {
-                                    preferredJob: '',
-                                    salaryExpectation: '',
-                                    notes: '',
-                                    paymentReference: '',
-                                  }),
-                                  paymentReference: e.target.value,
-                                },
-                              }))
-                            }
-                            placeholder="Bank transfer ID or receipt"
-                          />
-                        </label>
-                      )}
+                      {(() => {
+                        const details = ensureRequestDetails(pkg.id);
+                        const paymentReference = details.paymentReference.trim();
+                        const hasPayment = paypalEnabled ? Boolean(paidPackages[pkg.id]) : Boolean(paymentReference);
 
-                      <div className="stack">
-                        <label className="muted">
-                          Preferred job
-                          <input
-                            className="input"
-                            value={(requestDetails[pkg.id]?.preferredJob ?? '')}
-                            onChange={(e) =>
-                              setRequestDetails((prev) => ({
-                                ...prev,
-                                [pkg.id]: {
-                                  ...(prev[pkg.id] ?? {
-                                    preferredJob: '',
-                                    salaryExpectation: '',
-                                    notes: '',
-                                    paymentReference: '',
-                                  }),
-                                  preferredJob: e.target.value,
-                                },
-                              }))
-                            }
-                            placeholder="e.g. Sales manager"
-                          />
-                        </label>
-                        <label className="muted">
-                          Salary expectation
-                          <input
-                            className="input"
-                            value={(requestDetails[pkg.id]?.salaryExpectation ?? '')}
-                            onChange={(e) =>
-                              setRequestDetails((prev) => ({
-                                ...prev,
-                                [pkg.id]: {
-                                  ...(prev[pkg.id] ?? {
-                                    preferredJob: '',
-                                    salaryExpectation: '',
-                                    notes: '',
-                                    paymentReference: '',
-                                  }),
-                                  salaryExpectation: e.target.value,
-                                },
-                              }))
-                            }
-                            placeholder="e.g. 5000 AED / month"
-                          />
-                        </label>
-                        <label className="muted">
-                          Notes for admin
-                          <textarea
-                            className="input input-textarea"
-                            value={(requestDetails[pkg.id]?.notes ?? '')}
-                            onChange={(e) =>
-                              setRequestDetails((prev) => ({
-                                ...prev,
-                                [pkg.id]: {
-                                  ...(prev[pkg.id] ?? {
-                                    preferredJob: '',
-                                    salaryExpectation: '',
-                                    notes: '',
-                                    paymentReference: '',
-                                  }),
-                                  notes: e.target.value,
-                                },
-                              }))
-                            }
-                            placeholder="Preferred cities, industries, or extra notes"
-                          />
-                        </label>
-                      </div>
+                        return (
+                          <>
+                            {paypalEnabled ? (
+                              paidPackages[pkg.id] ? (
+                                <div className="alert success">
+                                  {t('Payment received. Reference: {ref}', {
+                                    ref: paidPackages[pkg.id],
+                                  })}
+                                </div>
+                              ) : (
+                                <PayPalCheckout
+                                  amount={pkg.price_usd}
+                                  currency="USD"
+                                  disabled={submittingPackage === pkg.id}
+                                  onApproved={(details) => {
+                                    const captureId =
+                                      details.capture?.purchase_units?.[0]?.payments?.captures?.[0]?.id;
+                                    const reference = captureId
+                                      ? `paypal_capture:${captureId}`
+                                      : `paypal_order:${details.orderId}`;
+                                    setPaidPackages((prev) => ({ ...prev, [pkg.id]: reference }));
+                                    updateRequestDetails(pkg.id, { paymentReference: reference });
+                                  }}
+                                />
+                              )
+                            ) : (
+                              <label className="muted">
+                                {t('Payment reference (required)')}
+                                <input
+                                  className="input"
+                                  value={details.paymentReference}
+                                  onChange={(e) => updateRequestDetails(pkg.id, { paymentReference: e.target.value })}
+                                  placeholder={t('Bank transfer ID or receipt')}
+                                />
+                              </label>
+                            )}
 
-                      <button
-                        className="primary-button"
-                        onClick={() => requestAccess(pkg, pkg.localAmount, requestDetails[pkg.id])}
-                        disabled={
-                          submittingPackage === pkg.id ||
-                          (paypalEnabled
-                            ? !paidPackages[pkg.id]
-                            : !(requestDetails[pkg.id]?.paymentReference ?? '').trim())
-                        }
-                      >
-                        {submittingPackage === pkg.id ? 'Submitting...' : 'Submit request'}
-                      </button>
+                            {hasPayment && (
+                              <>
+                                <div className="stack">
+                                  <label className="muted">
+                                    {t('Preferred position')}
+                                    <input
+                                      className="input"
+                                      value={details.preferredJob}
+                                      onChange={(e) =>
+                                        updateRequestDetails(pkg.id, { preferredJob: e.target.value })
+                                      }
+                                      placeholder={t('e.g. Sales manager')}
+                                    />
+                                  </label>
+                                  <label className="muted">
+                                    {t('Preferred city (UAE)')}
+                                    <input
+                                      className="input"
+                                      value={details.preferredCity}
+                                      onChange={(e) =>
+                                        updateRequestDetails(pkg.id, { preferredCity: e.target.value })
+                                      }
+                                      placeholder={t('e.g. Dubai')}
+                                    />
+                                  </label>
+                                  <label className="muted">
+                                    {t('Salary expectation')}
+                                    <input
+                                      className="input"
+                                      value={details.salaryExpectation}
+                                      onChange={(e) =>
+                                        updateRequestDetails(pkg.id, { salaryExpectation: e.target.value })
+                                      }
+                                      placeholder={t('e.g. 5000 AED / month')}
+                                    />
+                                  </label>
+                                  <label className="muted">
+                                    {t('Notes for admin')}
+                                    <textarea
+                                      className="input input-textarea"
+                                      value={details.notes}
+                                      onChange={(e) =>
+                                        updateRequestDetails(pkg.id, { notes: e.target.value })
+                                      }
+                                      placeholder={t('Preferred cities, industries, or extra notes')}
+                                    />
+                                  </label>
+                                </div>
+
+                                <button
+                                  className="primary-button"
+                                  onClick={() => requestAccess(pkg, pkg.localAmount, ensureRequestDetails(pkg.id))}
+                                  disabled={submittingPackage === pkg.id}
+                                >
+                                  {submittingPackage === pkg.id ? t('Submitting...') : t('Submit request')}
+                                </button>
+                              </>
+                            )}
+                          </>
+                        );
+                      })()}
                     </>
                   )}
                 </div>
@@ -425,17 +425,19 @@ export default function BuyerDashboard() {
           </section>
 
           <section className="card">
-            <h2>Purchase history</h2>
+            <h2>{t('Purchase history')}</h2>
             {purchases.length === 0 ? (
-              <p className="muted">No purchases yet. Select a package to get started.</p>
+              <p className="muted">{t('No purchases yet. Select a package to get started.')}</p>
             ) : (
               <div className="stack">
                 {purchases.map((purchase) => (
                   <div key={purchase.id} className="history-row">
                     <div>
-                      <p>{purchase.package?.name || 'Package'}</p>
+                      <p>{purchase.package?.name || t('Package')}</p>
                       <span className="muted">
-                        Requested {new Date(purchase.created_at).toLocaleDateString()}
+                        {t('Requested {date}', {
+                          date: new Date(purchase.created_at).toLocaleDateString(),
+                        })}
                       </span>
                     </div>
                     <span
@@ -443,7 +445,15 @@ export default function BuyerDashboard() {
                     >
                       {purchase.status === 'active' && <CheckCircle size={14} />}
                       {purchase.status === 'pending' && <Clock size={14} />}
-                      {purchase.status}
+                      {t(
+                        purchase.status === 'active'
+                          ? 'Active'
+                          : purchase.status === 'pending'
+                            ? 'Pending'
+                            : purchase.status === 'rejected'
+                              ? 'Rejected'
+                              : 'Expired'
+                      )}
                     </span>
                   </div>
                 ))}
@@ -454,21 +464,21 @@ export default function BuyerDashboard() {
 
         <section className="card">
           <div className="card-header">
-            <h2>Your unlocked contacts</h2>
+            <h2>{t('Your unlocked contacts')}</h2>
             <Globe2 size={18} />
           </div>
           {accessRows.length === 0 ? (
             <p className="muted">
-              No unlocked contacts yet. Once an admin approves your purchase, contacts will appear here.
+              {t('No unlocked contacts yet. Once an admin approves your purchase, contacts will appear here.')}
             </p>
           ) : (
             <div className="stack">
               {accessRows.map((row) => (
                 <div key={row.id} className="contact-card">
                   <div>
-                    <h3>{row.employer?.company_name || 'Employer'}</h3>
+                    <h3>{row.employer?.company_name || t('Employer')}</h3>
                     <p className="muted">
-                      {row.employer?.contact_name || 'Contact'}
+                      {row.employer?.contact_name || t('Contact')}
                       {row.employer?.job_title ? ` • ${row.employer.job_title}` : ''}
                       {row.employer?.city ? ` • ${row.employer.city}` : ''}
                     </p>

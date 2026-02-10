@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS public.directem_purchases (
   local_amount numeric,
   payment_reference text,
   preferred_job text,
+  preferred_city text,
   salary_expectation text,
   request_notes text,
   approved_by uuid REFERENCES public.profiles(id),
@@ -68,6 +69,7 @@ CREATE TABLE IF NOT EXISTS public.directem_purchases (
 
 ALTER TABLE public.directem_purchases
   ADD COLUMN IF NOT EXISTS preferred_job text,
+  ADD COLUMN IF NOT EXISTS preferred_city text,
   ADD COLUMN IF NOT EXISTS salary_expectation text,
   ADD COLUMN IF NOT EXISTS request_notes text;
 
