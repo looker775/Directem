@@ -67,7 +67,9 @@ export default function Layout() {
       // ignore storage errors
     }
     setLang(code);
-    window.setTimeout(() => window.location.reload(), 50);
+    const url = new URL(window.location.href);
+    url.searchParams.set('lang', code);
+    window.location.href = url.toString();
   };
 
   return (

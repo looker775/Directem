@@ -47,6 +47,12 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       : null;
     if (urlLang === 'en' || urlLang === 'ar' || urlLang === 'ru') {
       setLangState(urlLang);
+      try {
+        window.localStorage.setItem('directem_lang', urlLang);
+        window.localStorage.setItem('directem_lang_manual', '1');
+      } catch {
+        // ignore storage errors
+      }
       return;
     }
 
