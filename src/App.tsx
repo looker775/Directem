@@ -17,6 +17,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/kali" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/kali/register" element={<Register />} />
           <Route
             path="/buyer"
             element={

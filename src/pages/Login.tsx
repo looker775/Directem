@@ -99,6 +99,8 @@ export default function Login() {
         <p className="helper">
           {isOwnerPortal ? (
             <>
+              Need admin access? <Link to="/kali/register">Request admin access</Link>
+              <br />
               Buyer access? <Link to="/login">Use the buyer sign in page</Link>
             </>
           ) : (

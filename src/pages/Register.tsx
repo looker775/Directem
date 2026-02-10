@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Mail, User, Lock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -10,6 +10,10 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const isAdminSignup =
+    location.pathname.startsWith('/kali') || params.get('role') === 'admin';
 
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -24,13 +28,17 @@ export default function Register() {
         options: {
           data: {
             full_name: fullName.trim(),
-            role: 'buyer',
+            role: isAdminSignup ? 'admin' : 'buyer',
           },
         },
       });
 
       if (signUpError) throw signUpError;
-      setSuccess('Account created. Check your email to confirm, then sign in.');
+      setSuccess(
+        isAdminSignup
+          ? 'Admin request created. Check your email to confirm, then wait for owner approval.'
+          : 'Account created. Check your email to confirm, then sign in.'
+      );
       setFullName('');
       setEmail('');
       setPassword('');
@@ -49,8 +57,13 @@ export default function Register() {
             <img src="/logo.png" alt="Directem logo" className="brand-logo" />
             <span className="brand-mark">Directem</span>
           </div>
-          <h2>Create your Directem account</h2>
-          <p>Access verified UAE employer contacts in minutes.</p>
+          {isAdminSignup && <span className="pill">Admin request</span>}
+          <h2>{isAdminSignup ? 'Request admin access' : 'Create your Directem account'}</h2>
+          <p>
+            {isAdminSignup
+              ? 'Admin access is granted only after owner approval.'
+              : 'Access verified UAE employer contacts in minutes.'}
+          </p>
         </div>
 
         {error && <div className="alert error">{error}</div>}
@@ -102,7 +115,15 @@ export default function Register() {
         </form>
 
         <p className="helper">
-          Already have an account? <Link to="/login">Sign in</Link>
+          {isAdminSignup ? (
+            <>
+              Already approved? <Link to="/kali">Sign in as admin</Link>
+            </>
+          ) : (
+            <>
+              Already have an account? <Link to="/login">Sign in</Link>
+            </>
+          )}
         </p>
       </div>
     </div>
