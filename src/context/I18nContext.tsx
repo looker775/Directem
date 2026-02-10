@@ -35,7 +35,6 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       : null;
     if (stored === 'en' || stored === 'ar' || stored === 'ru') {
       setLangState(stored);
-      return;
     }
 
     const browserLang = typeof navigator !== 'undefined' ? navigator.language : undefined;
