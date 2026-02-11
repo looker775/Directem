@@ -107,6 +107,9 @@ export default function Login() {
               {t('Need admin access?')}{' '}
               <Link to="/kali/register">{t('Request admin access')}</Link>
               <br />
+              {t('Owner registration link (one-time)')}{' '}
+              <Link to="/kali/owner">{t('Owner registration')}</Link>
+              <br />
               {t('Buyer access? Use the buyer sign in page')}{' '}
               <Link to="/login">{t('Sign in')}</Link>
             </>

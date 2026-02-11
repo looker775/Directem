@@ -307,16 +307,32 @@ BEGIN
 END;
 $$;
 
+-- OWNER EXISTS HELPER
+CREATE OR REPLACE FUNCTION public.directem_owner_exists()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (SELECT 1 FROM public.profiles WHERE role = 'owner');
+$$;
+
+GRANT EXECUTE ON FUNCTION public.directem_owner_exists() TO anon, authenticated;
+
 -- FUNCTION TO HANDLE NEW USER SIGNUP
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 DECLARE
   role_text text;
+  owner_exists boolean;
 BEGIN
   role_text := COALESCE(new.raw_user_meta_data->>'role', 'buyer');
 
-  IF new.email = 'kaliwilll3@gmail.com' THEN
-    role_text := 'owner';
+  IF role_text = 'owner' THEN
+    SELECT EXISTS (SELECT 1 FROM public.profiles WHERE role = 'owner') INTO owner_exists;
+    IF owner_exists THEN
+      role_text := 'buyer';
+    END IF;
   END IF;
 
   INSERT INTO public.profiles (id, email, full_name, phone, role, admin_approved, admin_blocked)
@@ -349,3 +365,9 @@ DO UPDATE SET
   name = EXCLUDED.name,
   price_usd = EXCLUDED.price_usd,
   is_active = true;
+
+
+
+
+
+

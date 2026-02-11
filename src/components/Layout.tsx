@@ -37,19 +37,21 @@ export default function Layout() {
 
   const roleLinks = () => {
     if (!profile) return [];
+    const base = [{ path: '/account', label: t('Account') }];
     if (profile.role === 'owner') {
       return [
+        ...base,
         { path: '/owner', label: t('Owner') },
         { path: '/admin', label: t('Admin workspace') },
       ];
     }
     if (profile.role === 'admin') {
-      return [{ path: '/admin', label: t('Admin workspace') }];
+      return [...base, { path: '/admin', label: t('Admin workspace') }];
     }
     if (profile.role === 'buyer') {
-      return [{ path: '/buyer', label: t('Marketplace') }];
+      return [...base, { path: '/buyer', label: t('Marketplace') }];
     }
-    return [];
+    return base;
   };
 
   const navLinks = profile ? roleLinks() : publicLinks;
@@ -99,7 +101,7 @@ export default function Layout() {
                 </button>
               ))}
             </div>
-                        {profile && (
+            {profile && (
               <div className="profile-pill">
                 <User size={16} />
                 <span>{profile.full_name || profile.email || t('Account')}</span>

@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import AccountSettings from './pages/AccountSettings';
 import BuyerDashboard from './pages/BuyerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import OwnerDashboard from './pages/OwnerDashboard';
@@ -39,7 +40,6 @@ export default function App() {
     };
   }, []);
 
-
   return (
     <I18nProvider>
       <BrowserRouter>
@@ -50,8 +50,17 @@ export default function App() {
             <Route path="/kali" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/kali/register" element={<Register />} />
+            <Route path="/kali/owner" element={<Register />} />
             <Route path="/forgot" element={<ForgotPassword />} />
             <Route path="/reset" element={<ResetPassword />} />
+            <Route
+              path="/account"
+              element={
+                <ProtectedRoute allowedRoles={['buyer', 'admin', 'owner']}>
+                  <AccountSettings />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/buyer"
               element={

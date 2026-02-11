@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Mail, User, Lock } from 'lucide-react';
 import { getUserProfile, supabase } from '../lib/supabase';
@@ -11,12 +11,39 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [ownerAvailable, setOwnerAvailable] = useState(true);
+  const [ownerChecking, setOwnerChecking] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useI18n();
   const params = new URLSearchParams(location.search);
+  const isOwnerSignup =
+    location.pathname.startsWith('/kali/owner') || params.get('role') === 'owner';
   const isAdminSignup =
-    location.pathname.startsWith('/kali') || params.get('role') === 'admin';
+    !isOwnerSignup && (location.pathname.startsWith('/kali') || params.get('role') === 'admin');
+
+  useEffect(() => {
+    if (!isOwnerSignup) return;
+    let active = true;
+    setOwnerChecking(true);
+    supabase
+      .rpc('directem_owner_exists')
+      .then(({ data }) => {
+        if (!active) return;
+        setOwnerAvailable(!data);
+      })
+      .catch(() => {
+        if (!active) return;
+        setOwnerAvailable(true);
+      })
+      .finally(() => {
+        if (!active) return;
+        setOwnerChecking(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [isOwnerSignup]);
 
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -31,7 +58,7 @@ export default function Register() {
         options: {
           data: {
             full_name: fullName.trim(),
-            role: isAdminSignup ? 'admin' : 'buyer',
+            role: isOwnerSignup ? 'owner' : isAdminSignup ? 'admin' : 'buyer',
           },
         },
       });
@@ -58,9 +85,11 @@ export default function Register() {
 
       if (signInError || !signInData?.session) {
         setSuccess(
-          isAdminSignup
-            ? t('Admin request created. Check your email to confirm, then wait for owner approval.')
-            : t('Account created. Check your email to confirm, then sign in.')
+          isOwnerSignup
+            ? t('Owner account created. Check your email to confirm, then sign in.')
+            : isAdminSignup
+              ? t('Admin request created. Check your email to confirm, then wait for owner approval.')
+              : t('Account created. Check your email to confirm, then sign in.')
         );
         return;
       }
@@ -91,17 +120,29 @@ export default function Register() {
             <img src="/logo.png" alt="Directem logo" className="brand-logo" />
             <span className="brand-mark">Directem</span>
           </div>
+          {isOwnerSignup && <span className="pill">{t('Owner access')}</span>}
           {isAdminSignup && <span className="pill">{t('Admin request')}</span>}
-          <h2>{isAdminSignup ? t('Request admin access') : t('Create your Directem account')}</h2>
+          <h2>
+            {isOwnerSignup
+              ? t('Owner registration')
+              : isAdminSignup
+                ? t('Request admin access')
+                : t('Create your Directem account')}
+          </h2>
           <p>
-            {isAdminSignup
-              ? t('Admin access is granted only after owner approval.')
-              : t('Access verified UAE employer contacts in minutes.')}
+            {isOwnerSignup
+              ? t('Owner access is limited to one account.')
+              : isAdminSignup
+                ? t('Admin access is granted only after owner approval.')
+                : t('Access verified UAE employer contacts in minutes.')}
           </p>
         </div>
 
         {error && <div className="alert error">{error}</div>}
         {success && <div className="alert success">{success}</div>}
+        {isOwnerSignup && !ownerChecking && !ownerAvailable && (
+          <div className="alert error">{t('Owner registration is no longer available.')}</div>
+        )}
 
         <form onSubmit={handleRegister} className="form">
           <label>
@@ -114,6 +155,7 @@ export default function Register() {
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder={t('Full name')}
                 required
+                disabled={isOwnerSignup && (!ownerAvailable || ownerChecking)}
               />
             </div>
           </label>
@@ -127,6 +169,7 @@ export default function Register() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('you@company.com')}
                 required
+                disabled={isOwnerSignup && (!ownerAvailable || ownerChecking)}
               />
             </div>
           </label>
@@ -140,10 +183,15 @@ export default function Register() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t('Create a strong password')}
                 required
+                disabled={isOwnerSignup && (!ownerAvailable || ownerChecking)}
               />
             </div>
           </label>
-          <button className="primary-button" type="submit" disabled={loading}>
+          <button
+            className="primary-button"
+            type="submit"
+            disabled={loading || (isOwnerSignup && (!ownerAvailable || ownerChecking))}
+          >
             {loading ? t('Creating account...') : t('Create account')}
           </button>
         </form>
@@ -157,7 +205,7 @@ export default function Register() {
           ) : (
             <>
               {t('Already have an account?')}{' '}
-              <Link to="/login">{t('Sign in')}</Link>
+              <Link to={isOwnerSignup ? '/kali' : '/login'}>{t('Sign in')}</Link>
             </>
           )}
         </p>
