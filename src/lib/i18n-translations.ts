@@ -1,7 +1,18 @@
 import { registerTranslations } from './i18n';
 
+export const TRANSLATIONS: Record<'en' | 'ar' | 'ru', Record<string, string>> = {
+  en: {},
+  ar: {},
+  ru: {},
+};
+
+const mergeTranslations = (lang: 'en' | 'ar' | 'ru', map: Record<string, string>) => {
+  TRANSLATIONS[lang] = { ...TRANSLATIONS[lang], ...map };
+  registerTranslations(lang, map);
+};
+
 export function initTranslations() {
-  registerTranslations('ar', {
+  mergeTranslations('ar', {
     'Pricing': 'الأسعار',
     'Sign in': 'تسجيل الدخول',
     'Register': 'إنشاء حساب',
@@ -80,7 +91,7 @@ export function initTranslations() {
     'Local': 'محلي',
   });
 
-  registerTranslations('ru', {
+  mergeTranslations('ru', {
     'Pricing': 'Цены',
     'Sign in': 'Войти',
     'Register': 'Регистрация',
@@ -159,7 +170,7 @@ export function initTranslations() {
     'Local': 'Местн.',
   });
 
-  registerTranslations('ar', {
+  mergeTranslations('ar', {
     'UAE-only employers': 'أصحاب عمل في الإمارات فقط',
     'Owner-approved admin access': 'وصول المدير بعد موافقة المالك',
     'WhatsApp-ready contacts': 'جهات اتصال واتساب جاهزة',
@@ -217,7 +228,7 @@ export function initTranslations() {
     'Create your Directem account': 'إنشاء حساب Directem',
   });
 
-  registerTranslations('ru', {
+  mergeTranslations('ru', {
     'UAE-only employers': 'Работодатели только в ОАЭ',
     'Owner-approved admin access': 'Доступ админа после одобрения владельца',
     'WhatsApp-ready contacts': 'Контакты с WhatsApp',
@@ -275,7 +286,7 @@ export function initTranslations() {
     'Create your Directem account': 'Создать аккаунт Directem',
   });
 
-  registerTranslations('ar', {
+  mergeTranslations('ar', {
     'Private access for the Directem owner and owner-approved admins.':
       'وصول خاص لمالك Directem والمدراء المعتمدين.',
     'Sign in to access employer contacts.': 'سجّل الدخول للوصول إلى جهات الاتصال.',
@@ -324,7 +335,7 @@ export function initTranslations() {
     'Passwords do not match.': 'كلمتا المرور غير متطابقتين.',
   });
 
-  registerTranslations('ru', {
+  mergeTranslations('ru', {
     'Private access for the Directem owner and owner-approved admins.':
       'Закрытый доступ для владельца Directem и одобренных админов.',
     'Sign in to access employer contacts.':
@@ -375,7 +386,7 @@ export function initTranslations() {
     'Passwords do not match.': 'Пароли не совпадают.',
   });
 
-  registerTranslations('ar', {
+  mergeTranslations('ar', {
     'Directem Marketplace': 'سوق Directem',
     'Welcome, {name}. Unlock verified UAE employer contacts.':
       'مرحبًا، {name}. افتح جهات اتصال أصحاب عمل موثّقة في الإمارات.',
@@ -399,7 +410,7 @@ export function initTranslations() {
       'لم يتم إعداد PayPal بعد. أضف معرّف العميل لتفعيل الدفع.',
   });
 
-  registerTranslations('ru', {
+  mergeTranslations('ru', {
     'Directem Marketplace': 'Маркетплейс Directem',
     'Welcome, {name}. Unlock verified UAE employer contacts.':
       'Добро пожаловать, {name}. Откройте проверенные контакты работодателей ОАЭ.',
@@ -423,7 +434,7 @@ export function initTranslations() {
       'PayPal не настроен. Добавьте client ID, чтобы включить оплату.',
   });
 
-  registerTranslations('ar', {
+  mergeTranslations('ar', {
     'Directem Admin Workspace': 'مساحة مدير Directem',
     'Manage packages, employer contacts, and purchase approvals.':
       'إدارة الباقات وجهات الاتصال وموافقات الشراء.',
@@ -480,7 +491,7 @@ export function initTranslations() {
       'حساب المدير الخاص بك بانتظار موافقة المالك.',
   });
 
-  registerTranslations('ru', {
+  mergeTranslations('ru', {
     'Directem Admin Workspace': 'Панель админа Directem',
     'Manage packages, employer contacts, and purchase approvals.':
       'Управление пакетами, контактами и одобрениями.',
@@ -537,7 +548,7 @@ export function initTranslations() {
       'Ваш аккаунт админа ожидает одобрения владельца.',
   });
 
-  registerTranslations('ar', {
+  mergeTranslations('ar', {
     'Hiring Desk': 'قسم التوظيف',
     'HR Operations': 'عمليات الموارد البشرية',
     'Talent Desk': 'قسم المواهب',
@@ -545,7 +556,7 @@ export function initTranslations() {
     'Language': 'اللغة',
   });
 
-  registerTranslations('ru', {
+  mergeTranslations('ru', {
     'Hiring Desk': 'Отдел найма',
     'HR Operations': 'HR операции',
     'Talent Desk': 'Отдел талантов',
@@ -553,7 +564,7 @@ export function initTranslations() {
     'Language': 'Язык',
   });
 
-  registerTranslations('ar', {
+  mergeTranslations('ar', {
     'Preferred position': 'المنصب المفضل',
     'Preferred city (UAE)': 'المدينة المفضلة (الإمارات)',
     'e.g. Dubai': 'مثال: دبي',
@@ -561,7 +572,7 @@ export function initTranslations() {
     'Preferred city:': 'المدينة المفضلة:',
   });
 
-  registerTranslations('ru', {
+  mergeTranslations('ru', {
     'Preferred position': 'Предпочтительная должность',
     'Preferred city (UAE)': 'Предпочтительный город (ОАЭ)',
     'e.g. Dubai': 'например: Дубай',

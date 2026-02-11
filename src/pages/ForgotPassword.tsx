@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useI18n } from '../context/I18nContext';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const { t } = useI18n();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -20,9 +22,9 @@ export default function ForgotPassword() {
         redirectTo: `${window.location.origin}/reset`,
       });
       if (resetError) throw resetError;
-      setSuccess('Check your email for a password reset link.');
+      setSuccess(t('Check your email for a password reset link.'));
     } catch (err: any) {
-      setError(err.message || 'Unable to send reset email.');
+      setError(err.message || t('Unable to send reset email.'));
     } finally {
       setLoading(false);
     }
@@ -36,8 +38,8 @@ export default function ForgotPassword() {
             <img src="/logo.png" alt="Directem logo" className="brand-logo" />
             <span className="brand-mark">Directem</span>
           </div>
-          <h2>Reset your password</h2>
-          <p>We will email you a secure link to reset your password.</p>
+          <h2>{t('Reset your password')}</h2>
+          <p>{t('We will email you a secure link to reset your password.')}</p>
         </div>
 
         {error && <div className="alert error">{error}</div>}
@@ -45,25 +47,26 @@ export default function ForgotPassword() {
 
         <form onSubmit={handleSubmit} className="form">
           <label>
-            Email
+            {t('Email')}
             <div className="input-wrap">
               <Mail size={16} />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
+                placeholder={t('you@company.com')}
                 required
               />
             </div>
           </label>
           <button className="primary-button" type="submit" disabled={loading}>
-            {loading ? 'Sending...' : 'Send reset link'}
+            {loading ? t('Sending...') : t('Send reset link')}
           </button>
         </form>
 
         <p className="helper">
-          Remembered your password? <Link to="/login">Sign in</Link>
+          {t('Remembered your password?')}{' '}
+          <Link to="/login">{t('Sign in')}</Link>
         </p>
       </div>
     </div>

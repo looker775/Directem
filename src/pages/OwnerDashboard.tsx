@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import { BadgeCheck, Crown, Shield, Users, Package, ClipboardList, Loader2 } from 'lucide-react';
 import { supabase, type Profile } from '../lib/supabase';
+import { useI18n } from '../context/I18nContext';
 
 interface AdminUser {
   id: string;
@@ -12,6 +13,7 @@ interface AdminUser {
 }
 
 export default function OwnerDashboard() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [stats, setStats] = useState({ packages: 0, employers: 0, purchases: 0 });
@@ -29,7 +31,7 @@ export default function OwnerDashboard() {
       await Promise.all([loadAdmins(), loadStats()]);
     } catch (err: any) {
       console.error('Failed to load owner dashboard:', err);
-      setError('Unable to load owner dashboard.');
+      setError(t('Unable to load owner dashboard.'));
     } finally {
       setLoading(false);
     }
@@ -76,7 +78,7 @@ export default function OwnerDashboard() {
       return;
     }
 
-    setMessage('Admin settings updated.');
+    setMessage(t('Admin settings updated.'));
     loadAdmins();
   };
 
@@ -94,12 +96,12 @@ export default function OwnerDashboard() {
         <div className="header-title">
           <Crown size={26} />
           <div>
-            <h1>Directem Owner Console</h1>
-            <p>Approve admins and oversee marketplace activity.</p>
+            <h1>{t('Directem Owner Console')}</h1>
+            <p>{t('Approve admins and oversee marketplace activity.')}</p>
           </div>
         </div>
         <button className="ghost-button" onClick={loadAll}>
-          Refresh
+          {t('Refresh')}
         </button>
       </div>
 
@@ -109,21 +111,21 @@ export default function OwnerDashboard() {
       <div className="stats-grid">
         <div className="stat-card">
           <div>
-            <p className="muted">Packages</p>
+            <p className="muted">{t('Packages')}</p>
             <h3>{stats.packages}</h3>
           </div>
           <Package size={20} />
         </div>
         <div className="stat-card">
           <div>
-            <p className="muted">Employers</p>
+            <p className="muted">{t('Employers')}</p>
             <h3>{stats.employers}</h3>
           </div>
           <Users size={20} />
         </div>
         <div className="stat-card">
           <div>
-            <p className="muted">Purchases</p>
+            <p className="muted">{t('Purchases')}</p>
             <h3>{stats.purchases}</h3>
           </div>
           <ClipboardList size={20} />
@@ -132,11 +134,11 @@ export default function OwnerDashboard() {
 
       <section className="card">
         <div className="card-header">
-          <h2>Admin approvals</h2>
+          <h2>{t('Admin approvals')}</h2>
           <Shield size={18} />
         </div>
         {admins.length === 0 ? (
-          <p className="muted">No admin accounts found.</p>
+          <p className="muted">{t('No admin accounts found.')}</p>
         ) : (
           <div className="stack">
             {admins.map((admin) => {
@@ -145,21 +147,21 @@ export default function OwnerDashboard() {
               return (
                 <div key={admin.id} className="history-row">
                   <div>
-                    <p>{admin.full_name || admin.email || 'Admin'}</p>
+                    <p>{admin.full_name || admin.email || t('Admin')}</p>
                     <span className="muted">{admin.email}</span>
                   </div>
                   <div className="row-actions">
                     <span className={`status ${approved ? 'active' : 'pending'}`}>
-                      {approved ? 'Approved' : 'Pending'}
+                      {approved ? t('Approved') : t('Pending')}
                     </span>
-                    {blocked && <span className="status rejected">Blocked</span>}
+                    {blocked && <span className="status rejected">{t('Blocked')}</span>}
                     {!approved && !blocked && (
                       <button
                         className="primary-button"
                         onClick={() => updateAdmin(admin.id, { admin_approved: true })}
                       >
                         <BadgeCheck size={14} />
-                        Approve
+                        {t('Approve')}
                       </button>
                     )}
                     {blocked ? (
@@ -167,14 +169,14 @@ export default function OwnerDashboard() {
                         className="ghost-button"
                         onClick={() => updateAdmin(admin.id, { admin_blocked: false })}
                       >
-                        Unblock
+                        {t('Unblock')}
                       </button>
                     ) : (
                       <button
                         className="ghost-button danger"
                         onClick={() => updateAdmin(admin.id, { admin_blocked: true })}
                       >
-                        Block
+                        {t('Block')}
                       </button>
                     )}
                   </div>

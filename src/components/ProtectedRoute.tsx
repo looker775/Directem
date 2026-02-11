@@ -2,6 +2,7 @@
 import { Navigate } from 'react-router-dom';
 import { getUserProfile, signOut, type Profile } from '../lib/supabase';
 import { Loader2 } from 'lucide-react';
+import { useI18n } from '../context/I18nContext';
 
 interface ProtectedRouteProps {
   allowedRoles: Array<Profile['role']>;
@@ -9,6 +10,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) {
+  const { t } = useI18n();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -54,14 +56,14 @@ export default function ProtectedRoute({ allowedRoles, children }: ProtectedRout
       return (
         <div className="centered">
           <div className="card narrow">
-            <h2>{blocked ? 'Admin account blocked' : 'Admin approval required'}</h2>
+            <h2>{blocked ? t('Admin account blocked') : t('Admin approval required')}</h2>
             <p>
               {blocked
-                ? 'Your admin account has been blocked by the owner. Contact support if this is unexpected.'
-                : 'Your admin account is pending owner approval.'}
+                ? t('Your admin account has been blocked by the owner. Contact support if this is unexpected.')
+                : t('Your admin account is pending owner approval.')}
             </p>
             <button className="primary-button" onClick={signOut}>
-              Sign out
+              {t('Sign out')}
             </button>
           </div>
         </div>

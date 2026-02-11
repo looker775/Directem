@@ -2,6 +2,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Mail, User, Lock } from 'lucide-react';
 import { getUserProfile, supabase } from '../lib/supabase';
+import { useI18n } from '../context/I18nContext';
 
 export default function Register() {
   const [fullName, setFullName] = useState('');
@@ -12,6 +13,7 @@ export default function Register() {
   const [success, setSuccess] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const params = new URLSearchParams(location.search);
   const isAdminSignup =
     location.pathname.startsWith('/kali') || params.get('role') === 'admin';
@@ -57,8 +59,8 @@ export default function Register() {
       if (signInError || !signInData?.session) {
         setSuccess(
           isAdminSignup
-            ? 'Admin request created. Check your email to confirm, then wait for owner approval.'
-            : 'Account created. Check your email to confirm, then sign in.'
+            ? t('Admin request created. Check your email to confirm, then wait for owner approval.')
+            : t('Account created. Check your email to confirm, then sign in.')
         );
         return;
       }
@@ -75,7 +77,7 @@ export default function Register() {
       navigate('/buyer');
       return;
     } catch (err: any) {
-      setError(err.message || 'Unable to register.');
+      setError(err.message || t('Unable to register.'));
     } finally {
       setLoading(false);
     }
@@ -89,12 +91,12 @@ export default function Register() {
             <img src="/logo.png" alt="Directem logo" className="brand-logo" />
             <span className="brand-mark">Directem</span>
           </div>
-          {isAdminSignup && <span className="pill">Admin request</span>}
-          <h2>{isAdminSignup ? 'Request admin access' : 'Create your Directem account'}</h2>
+          {isAdminSignup && <span className="pill">{t('Admin request')}</span>}
+          <h2>{isAdminSignup ? t('Request admin access') : t('Create your Directem account')}</h2>
           <p>
             {isAdminSignup
-              ? 'Admin access is granted only after owner approval.'
-              : 'Access verified UAE employer contacts in minutes.'}
+              ? t('Admin access is granted only after owner approval.')
+              : t('Access verified UAE employer contacts in minutes.')}
           </p>
         </div>
 
@@ -103,57 +105,59 @@ export default function Register() {
 
         <form onSubmit={handleRegister} className="form">
           <label>
-            Full name
+            {t('Full name')}
             <div className="input-wrap">
               <User size={16} />
               <input
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Full name"
+                placeholder={t('Full name')}
                 required
               />
             </div>
           </label>
           <label>
-            Email
+            {t('Email')}
             <div className="input-wrap">
               <Mail size={16} />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
+                placeholder={t('you@company.com')}
                 required
               />
             </div>
           </label>
           <label>
-            Password
+            {t('Password')}
             <div className="input-wrap">
               <Lock size={16} />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create a strong password"
+                placeholder={t('Create a strong password')}
                 required
               />
             </div>
           </label>
           <button className="primary-button" type="submit" disabled={loading}>
-            {loading ? 'Creating account...' : 'Create account'}
+            {loading ? t('Creating account...') : t('Create account')}
           </button>
         </form>
 
         <p className="helper">
           {isAdminSignup ? (
             <>
-              Already approved? <Link to="/kali">Sign in as admin</Link>
+              {t('Already approved?')}{' '}
+              <Link to="/kali">{t('Sign in as admin')}</Link>
             </>
           ) : (
             <>
-              Already have an account? <Link to="/login">Sign in</Link>
+              {t('Already have an account?')}{' '}
+              <Link to="/login">{t('Sign in')}</Link>
             </>
           )}
         </p>

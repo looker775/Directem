@@ -2,6 +2,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Lock, Mail } from 'lucide-react';
 import { supabase, getUserProfile } from '../lib/supabase';
+import { useI18n } from '../context/I18nContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -11,6 +12,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const isOwnerPortal = location.pathname === '/kali';
+  const { t } = useI18n();
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -39,7 +41,7 @@ export default function Login() {
 
       navigate(destination);
     } catch (err: any) {
-      setError(err.message || 'Unable to sign in.');
+      setError(err.message || t('Unable to sign in.'));
     } finally {
       setLoading(false);
     }
@@ -53,12 +55,12 @@ export default function Login() {
             <img src="/logo.png" alt="Directem logo" className="brand-logo" />
             <span className="brand-mark">Directem</span>
           </div>
-          {isOwnerPortal && <span className="pill">Owner & Admin portal</span>}
-          <h2>{isOwnerPortal ? 'Owner & Admin access' : 'Welcome back'}</h2>
+          {isOwnerPortal && <span className="pill">{t('Owner & Admin portal')}</span>}
+          <h2>{isOwnerPortal ? t('Owner & Admin access') : t('Welcome back')}</h2>
           <p>
             {isOwnerPortal
-              ? 'Private access for the Directem owner and owner-approved admins.'
-              : 'Sign in to access employer contacts.'}
+              ? t('Private access for the Directem owner and owner-approved admins.')
+              : t('Sign in to access employer contacts.')}
           </p>
         </div>
 
@@ -66,20 +68,20 @@ export default function Login() {
 
         <form onSubmit={handleLogin} className="form">
           <label>
-            Email
+            {t('Email')}
             <div className="input-wrap">
               <Mail size={16} />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
+                placeholder={t('you@company.com')}
                 required
               />
             </div>
           </label>
           <label>
-            Password
+            {t('Password')}
             <div className="input-wrap">
               <Lock size={16} />
               <input
@@ -92,23 +94,26 @@ export default function Login() {
             </div>
           </label>
           <Link className="pill-link" to="/forgot">
-            {isOwnerPortal ? 'Forgot admin password?' : 'Forgot password?'}
+            {isOwnerPortal ? t('Forgot admin password?') : t('Forgot password?')}
           </Link>
           <button className="primary-button" type="submit" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? t('Signing in...') : t('Sign in')}
           </button>
         </form>
 
         <p className="helper">
           {isOwnerPortal ? (
             <>
-              Need admin access? <Link to="/kali/register">Request admin access</Link>
+              {t('Need admin access?')}{' '}
+              <Link to="/kali/register">{t('Request admin access')}</Link>
               <br />
-              Buyer access? <Link to="/login">Use the buyer sign in page</Link>
+              {t('Buyer access? Use the buyer sign in page')}{' '}
+              <Link to="/login">{t('Sign in')}</Link>
             </>
           ) : (
             <>
-              New to Directem? <Link to="/register">Create an account</Link>
+              {t('New to Directem? Create an account')}{' '}
+              <Link to="/register">{t('Register')}</Link>
             </>
           )}
         </p>

@@ -98,7 +98,7 @@ i18n
     },
   });
 
-i18n.on('languageChanged', (lng) => {
+i18n.on('languageChanged', (lng: string) => {
   if (typeof document === 'undefined') return;
   const lang = lng.split('-')[0];
   document.documentElement.lang = lang;

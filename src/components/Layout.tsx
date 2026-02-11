@@ -60,16 +60,7 @@ export default function Layout() {
   ] as const;
 
   const handleLangClick = (code: typeof languageOptions[number]['code']) => {
-    try {
-      window.localStorage.setItem('directem_lang', code);
-      window.localStorage.setItem('directem_lang_manual', '1');
-    } catch {
-      // ignore storage errors
-    }
     setLang(code);
-    const url = new URL(window.location.href);
-    url.searchParams.set('lang', code);
-    window.location.href = url.toString();
   };
 
   return (

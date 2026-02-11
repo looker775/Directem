@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useI18n } from '../context/I18nContext';
 
 declare global {
   interface Window {
@@ -47,6 +48,7 @@ export default function PayPalCheckout({
   const paypalRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const [error, setError] = useState('');
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!paypalRef.current || !CLIENT_ID || disabled) return;
@@ -98,7 +100,7 @@ export default function PayPalCheckout({
             createOrder,
             onApprove,
             onError: (err: any) =>
-              setError(err?.message || 'PayPal payment failed.'),
+              setError(err?.message || t('PayPal payment failed.')),
             style: { layout: 'vertical', height: 42 },
           })
           .render(paypalRef.current);
@@ -112,7 +114,7 @@ export default function PayPalCheckout({
                 createOrder,
                 onApprove,
                 onError: (err: any) =>
-                  setError(err?.message || 'Card payment failed.'),
+                  setError(err?.message || t('Card payment failed.')),
                 style: { layout: 'vertical', height: 42 },
               })
               .render(cardRef.current);
@@ -120,7 +122,7 @@ export default function PayPalCheckout({
         }
       } catch (err: any) {
         if (!cancelled) {
-          setError(err?.message || 'PayPal failed to initialize.');
+          setError(err?.message || t('PayPal failed to initialize.'));
         }
       }
     };
@@ -137,14 +139,14 @@ export default function PayPalCheckout({
   if (!CLIENT_ID) {
     return (
       <div className="paypal-note">
-        PayPal is not configured yet. Add your PayPal client ID to enable card payments.
+        {t('PayPal is not configured yet. Add your PayPal client ID to enable card payments.')}
       </div>
     );
   }
 
   return (
     <div className="paypal-stack">
-      <div className="paypal-label">Pay with card or PayPal</div>
+      <div className="paypal-label">{t('Pay with card or PayPal')}</div>
       <div ref={paypalRef} />
       <div ref={cardRef} />
       {error && <div className="note">{error}</div>}
