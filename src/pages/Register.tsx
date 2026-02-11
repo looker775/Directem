@@ -25,21 +25,21 @@ export default function Register() {
   useEffect(() => {
     if (!isOwnerSignup) return;
     let active = true;
-    setOwnerChecking(true);
-    supabase
-      .rpc('directem_owner_exists')
-      .then(({ data }) => {
+    const checkOwner = async () => {
+      setOwnerChecking(true);
+      try {
+        const { data } = await supabase.rpc('directem_owner_exists');
         if (!active) return;
         setOwnerAvailable(!data);
-      })
-      .catch(() => {
+      } catch {
         if (!active) return;
         setOwnerAvailable(true);
-      })
-      .finally(() => {
+      } finally {
         if (!active) return;
         setOwnerChecking(false);
-      });
+      }
+    };
+    checkOwner();
     return () => {
       active = false;
     };
