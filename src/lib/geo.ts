@@ -7,7 +7,6 @@
 
 const IP_GEO_SOURCES = [
   'https://ipwho.is/',
-  'https://ipapi.co/json/',
   'https://geolocation-db.com/json/',
 ];
 
